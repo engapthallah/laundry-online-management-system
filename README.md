@@ -112,7 +112,7 @@ Follow these steps to set up the project locally:
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_DATABASE=loms
+   DB_DATABASE=loms_db
    DB_USERNAME=root
    DB_PASSWORD=
    ```
