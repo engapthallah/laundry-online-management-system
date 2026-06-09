@@ -1,4 +1,4 @@
-# Laundry Online Management System (LOMS)
+﻿# Laundry Online Management System (LOMS)
 
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-red.svg)](https://laravel.com)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net)
@@ -10,7 +10,7 @@ This project was developed as a **Final Year Software Engineering Thesis Project
 
 ---
 
-## 🚀 Key Features
+## ðŸš€ Key Features
 
 * **Multi-Role Dashboards**: Tailored interfaces and permission structures for Admins, Staff, Delivery Drivers, and Customers.
 * **Order Lifecycle Management**: Dynamic tracking of orders from pickup requests through cleaning, packing, and final delivery.
@@ -23,7 +23,7 @@ This project was developed as a **Final Year Software Engineering Thesis Project
 
 ---
 
-## 🛠️ Technology Stack
+## ðŸ› ï¸ Technology Stack
 
 * **Backend Framework**: [Laravel 12](https://laravel.com) (PHP 8.2+)
 * **Database**: MySQL / SQLite (for testing)
@@ -34,7 +34,7 @@ This project was developed as a **Final Year Software Engineering Thesis Project
 
 ---
 
-## 📦 System Modules
+## ðŸ“¦ System Modules
 
 ### 1. Public Portal
 * **Home Page**: Informative introduction to services, pricing, and operational details.
@@ -64,7 +64,7 @@ This project was developed as a **Final Year Software Engineering Thesis Project
 
 ---
 
-## ⚙️ Installation Instructions
+## âš™ï¸ Installation Instructions
 
 Follow these steps to set up the project locally:
 
@@ -146,7 +146,7 @@ Follow these steps to set up the project locally:
 
 ---
 
-## 🧪 Testing
+## ðŸ§ª Testing
 
 To run the automated PHPUnit test suite:
 ```bash
@@ -155,7 +155,7 @@ php artisan test
 
 ---
 
-## 🧑‍💻 Author Information
+## ðŸ§‘â€ðŸ’» Author Information
 
 * **Author**: Eng. Apthallah
 * **Role**: Software Engineering Student / Lead Developer
@@ -164,6 +164,6 @@ php artisan test
 
 ---
 
-## 📄 License
+## ðŸ“„ License
 
 This project is open-sourced software licensed under the [MIT license](LICENSE).
