@@ -41,7 +41,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Redirect to role-specific dashboard, falling back on intended if set
-        $dashboardRoute = 'customer.dashboard';
+        $dashboardRoute = 'home';
         if ($user->isAdmin()) {
             $dashboardRoute = 'admin.dashboard';
         } elseif ($user->isStaff()) {

@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PublicServiceController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/services', [PublicServiceController::class, 'index'])->name('services.index');
+Route::get('/about', function () {
+    return view('public.about');
+})->name('about');
 
 Route::get('/reviews', [\App\Http\Controllers\PublicReviewController::class, 'index'])->name('reviews.public');
 Route::get('/contact', [\App\Http\Controllers\PublicSupportController::class, 'create'])->name('contact.create');
@@ -26,7 +30,7 @@ Route::get('/dashboard', function () {
         return redirect()->route('delivery.dashboard');
     }
     
-    return redirect()->route('customer.dashboard');
+    return redirect()->route('home');
 })->middleware(['auth'])->name('dashboard');
 
 // Admin routes
@@ -121,8 +125,6 @@ Route::middleware(['auth', 'delivery'])
 
 // Customer routes
 Route::prefix('customer')->middleware(['auth', 'customer'])->name('customer.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [\App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
 
     // Orders
     Route::resource('orders', \App\Http\Controllers\Customer\OrderController::class)->only(['index', 'create', 'store', 'show']);

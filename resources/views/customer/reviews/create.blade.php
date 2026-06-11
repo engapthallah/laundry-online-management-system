@@ -1,4 +1,4 @@
-@extends('layouts.customer')
+@extends('layouts.customer-portal')
 
 @section('content')
 <div class="container-fluid px-0">

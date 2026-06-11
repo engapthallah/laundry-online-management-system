@@ -17,7 +17,7 @@ class PublicReviewController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Review::with(['order.orderItems.service']);
+        $query = Review::with(['order.orderItems.service', 'customer']);
 
         // Filter by rating
         if ($request->filled('rating')) {

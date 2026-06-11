@@ -1,96 +1,49 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Contact & Support - {{ config('app.name', 'LOMS') }}</title>
+@extends('layouts.website')
 
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap 5.3.3 CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome 6.5.0 CDN -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+@section('title', 'Contact Us — Iimaan Dry Cleaner')
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-        .quick-subject-btn {
-            font-size: 0.85rem;
-            transition: all 0.2s ease-in-out;
-        }
-    </style>
-</head>
-<body class="min-vh-100 d-flex flex-column">
+@section('content')
+<!-- Custom Styles for Contact Page -->
+<style>
+    .contact-hero {
+        background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #fefce8 100%);
+        padding: 4rem 0;
+    }
+    .contact-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+    }
+    .quick-subject-btn {
+        font-size: 0.8rem;
+        transition: var(--transition);
+        border-radius: 50px;
+    }
+</style>
 
-    <!-- Public Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-3 sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center fw-bold fs-4 text-primary" href="/">
-                <i class="fa-solid fa-soap me-2"></i>LOMS — Iimaan Dry Cleaner
-            </a>
-            
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#publicNavbar" aria-controls="publicNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<!-- Hero Section -->
+<section class="contact-hero border-bottom text-center text-md-start">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2 justify-content-center justify-content-md-start">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Contact</li>
+            </ol>
+        </nav>
+        <h1 class="display-5 fw-extrabold text-dark mb-2">Contact & Support</h1>
+        <p class="lead text-muted mb-0">We are here to help. Send us a message and our support team will get back to you.</p>
+    </div>
+</section>
 
-            <div class="collapse navbar-collapse" id="publicNavbar">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-3 align-items-center gap-2">
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="{{ route('reviews.public') }}">
-                            <i class="fa-solid fa-star text-warning me-1"></i>Reviews
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold text-primary active" href="{{ route('contact.create') }}">
-                            <i class="fa-solid fa-envelope me-1"></i>Contact Us
-                        </a>
-                    </li>
-                </ul>
-                <div class="d-flex gap-2">
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="btn btn-primary fw-bold px-4 rounded-3">
-                            <i class="fa-solid fa-gauge me-2"></i>Dashboard
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-primary fw-semibold px-3 rounded-3">Login</a>
-                        <a href="{{ route('register') }}" class="btn btn-primary fw-bold px-3 rounded-3">Register</a>
-                    @endauth
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Page Hero -->
-    <header class="bg-light py-5 border-bottom">
-        <div class="container text-center">
-            <h1 class="display-5 fw-bold text-dark mb-2">Contact & Support</h1>
-            <p class="lead text-secondary mb-0">We are here to help. Send us a message and our support team will get back to you.</p>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="container py-5 flex-grow-1">
-        
-        <!-- Flash Messages -->
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 rounded-4 p-3.5" role="alert">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-circle-check fs-4 text-success"></i>
-                    <div class="fw-semibold">{{ session('success') }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        <div class="row g-4">
-            <!-- LEFT COLUMN — Form -->
-            <div class="col-md-7">
-                <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-                    <h5 class="fw-bold text-dark mb-4"><i class="fa-regular fa-paper-plane me-2 text-primary"></i>Send us a Message</h5>
+<!-- Main Form Section -->
+<section class="py-5 bg-white">
+    <div class="container py-4">
+        <div class="row g-5">
+            <!-- Left Column: Form -->
+            <div class="col-lg-7">
+                <div class="contact-card p-4">
+                    <h4 class="fw-bold text-dark mb-4"><i class="far fa-paper-plane me-2 text-primary"></i>Send us a Message</h4>
                     
                     <form method="POST" action="{{ route('contact.store') }}" id="contact-form">
                         @csrf
@@ -104,7 +57,7 @@
                             <input type="text" 
                                    name="name" 
                                    id="name" 
-                                   class="form-control @error('name') is-invalid @enderror" 
+                                   class="form-control rounded-3 py-2 px-3 @error('name') is-invalid @enderror" 
                                    placeholder="Enter your full name" 
                                    value="{{ old('name', $prefilledName) }}" 
                                    required 
@@ -120,7 +73,7 @@
                             <input type="email" 
                                    name="email" 
                                    id="email" 
-                                   class="form-control @error('email') is-invalid @enderror" 
+                                   class="form-control rounded-3 py-2 px-3 @error('email') is-invalid @enderror" 
                                    placeholder="Enter your email address" 
                                    value="{{ old('email', $prefilledEmail) }}" 
                                    required 
@@ -137,17 +90,17 @@
                             </div>
                             <!-- Quick Select Buttons -->
                             <div class="d-flex flex-wrap gap-2 mb-2">
-                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn rounded-pill px-3 py-1" data-subject="Order Issue">Order Issue</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn rounded-pill px-3 py-1" data-subject="Payment Issue">Payment Issue</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn rounded-pill px-3 py-1" data-subject="Delivery Issue">Delivery Issue</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn rounded-pill px-3 py-1" data-subject="General Inquiry">General Inquiry</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn rounded-pill px-3 py-1" data-subject="Complaint">Complaint</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn rounded-pill px-3 py-1" data-subject="Other">Other</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn px-3 py-1" data-subject="Order Issue">Order Issue</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn px-3 py-1" data-subject="Payment Issue">Payment Issue</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn px-3 py-1" data-subject="Delivery Issue">Delivery Issue</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn px-3 py-1" data-subject="General Inquiry">General Inquiry</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn px-3 py-1" data-subject="Complaint">Complaint</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm quick-subject-btn px-3 py-1" data-subject="Other">Other</button>
                             </div>
                             <input type="text" 
                                    name="subject" 
                                    id="subject" 
-                                   class="form-control @error('subject') is-invalid @enderror" 
+                                   class="form-control rounded-3 py-2 px-3 @error('subject') is-invalid @enderror" 
                                    placeholder="e.g. Question about my booking, special pricing query" 
                                    value="{{ old('subject') }}" 
                                    required 
@@ -165,8 +118,8 @@
                             </div>
                             <textarea name="message" 
                                       id="message" 
-                                      rows="7" 
-                                      class="form-control @error('message') is-invalid @enderror" 
+                                      rows="6" 
+                                      class="form-control rounded-3 py-2 px-3 @error('message') is-invalid @enderror" 
                                       placeholder="Describe your question or issue in detail here..." 
                                       required 
                                       minlength="20" 
@@ -178,86 +131,86 @@
 
                         <!-- Submit and Security Indicator -->
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                            <button type="submit" class="btn btn-primary btn-lg px-4 py-2.5 rounded-3 fw-bold shadow-sm">
-                                <i class="fa-solid fa-paper-plane me-2"></i>Send Message
+                            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2.5 fw-semibold shadow-sm">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
                             </button>
-                            <span class="text-muted small"><i class="fa-solid fa-lock me-1 text-success"></i>🔒 Your message is secure</span>
+                            <span class="text-muted small"><i class="fas fa-lock me-1 text-success"></i> Your message is secure</span>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN — Contact Info -->
-            <div class="col-md-5">
-                <!-- Business Info Card -->
-                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
-                    <h5 class="fw-bold text-dark mb-4"><i class="fa-solid fa-building me-2 text-primary"></i>Our Contact Details</h5>
+            <!-- Right Column: Contact Details -->
+            <div class="col-lg-5">
+                <!-- Our Contact Details -->
+                <div class="contact-card p-4 mb-4">
+                    <h5 class="fw-bold text-dark mb-4"><i class="fas fa-building me-2 text-primary"></i>Our Contact Details</h5>
                     
-                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3.5">
-                        <li class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
-                                <i class="fa-solid fa-map-marker-alt"></i>
+                    <div class="d-flex flex-column gap-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0.5">Location</h6>
-                                <p class="text-secondary small mb-0">Hargeisa, Somaliland</p>
+                                <h6 class="fw-bold text-dark mb-1">Location</h6>
+                                <p class="text-muted small mb-0">Main Street, Shaab Area, Hargeisa, Somaliland</p>
                             </div>
-                        </li>
-                        <li class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
-                                <i class="fa-solid fa-phone"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0.5">Phone</h6>
-                                <p class="text-secondary small mb-0">+252-XX-XXXXXXX</p>
-                            </div>
-                        </li>
-                        <li class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
-                                <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="fas fa-phone"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0.5">Email</h6>
-                                <p class="text-secondary small mb-0">support@loms.com</p>
+                                <h6 class="fw-bold text-dark mb-1">Phone</h6>
+                                <p class="text-muted small mb-0">+252-63-4444444</p>
                             </div>
-                        </li>
-                        <li class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
-                                <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="fas fa-envelope"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0.5">Operating Hours</h6>
-                                <p class="text-secondary small mb-1">Sun–Thu: 8am–8pm | Sat: 9am–6pm</p>
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.7rem;">Friday: Closed</span>
+                                <h6 class="fw-bold text-dark mb-1">Email</h6>
+                                <p class="text-muted small mb-0">info@iimaan.com</p>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Operating Hours</h6>
+                                <p class="text-muted small mb-1">Sun–Thu: 8am–8pm | Sat: 9am–6pm</p>
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10 px-2.5 py-1 rounded-pill" style="font-size: 0.7rem;">Friday: Closed</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Response Time Alert -->
-                <div class="alert alert-info border-0 shadow-sm rounded-4 p-3.5 mb-4" role="alert">
+                <!-- Typical Response Alert -->
+                <div class="alert alert-info border-0 shadow-sm rounded-4 p-4 mb-4" role="alert" style="background-color: #f0fdf4 !important; border-left: 4px solid #16a34a !important; color: #14532d;">
                     <div class="d-flex gap-3">
-                        <i class="fa-solid fa-clock-rotate-left text-info fs-4"></i>
+                        <span class="fs-4 text-success"><i class="fas fa-history"></i></span>
                         <div>
-                            <h6 class="fw-bold text-info-emphasis mb-1">Typical Response Time</h6>
-                            <p class="mb-0 small text-info-emphasis opacity-90">
-                                We typically respond within 24 business hours during working days.
+                            <h6 class="fw-bold mb-1">Typical Response Time</h6>
+                            <p class="mb-0 small opacity-90">
+                                We review submissions constantly and typically respond within 24 business hours.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Logged In Info Banner -->
+                <!-- Auth Banner -->
                 @auth
-                    <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle border-start border-primary border-4 p-3.5">
+                    <div class="card border-0 shadow-sm rounded-4 p-4" style="background-color: #f0f9ff; border-left: 4px solid var(--primary) !important;">
                         <div class="d-flex gap-3 align-items-start">
-                            <div class="text-primary mt-0.5">
-                                <i class="fa-solid fa-user-check fs-4"></i>
+                            <div class="text-primary mt-1">
+                                <i class="fas fa-user-check fs-4"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold text-primary-emphasis mb-1">Logged In: {{ Auth::user()->name }}</h6>
-                                <p class="mb-0 small text-primary-emphasis opacity-90">
-                                    Your message will be automatically linked to your customer account, allowing you to track responses directly in your support dashboard.
+                                <h6 class="fw-bold text-dark mb-1">Logged In: {{ Auth::user()->name }}</h6>
+                                <p class="mb-0 small text-muted">
+                                    Your support message will be linked directly to your customer account, allowing you to track agent responses inside your customer portal dashboard under the Support section.
                                 </p>
                             </div>
                         </div>
@@ -265,57 +218,47 @@
                 @endauth
             </div>
         </div>
-    </main>
+    </div>
+</section>
+@endsection
 
-    <!-- Footer -->
-    <footer class="bg-white border-top py-4 mt-auto">
-        <div class="container text-center text-muted small">
-            <p class="mb-1">© 2024 Iimaan Dry Cleaner — LOMS</p>
-            <p class="mb-0">Hargeisa, Somaliland | info@loms.com</p>
-        </div>
-    </footer>
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const subjectInput = document.getElementById('subject');
+        const quickButtons = document.querySelectorAll('.quick-subject-btn');
 
-    <!-- Bootstrap 5.3.3 Bundle JS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        quickButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const value = this.getAttribute('data-subject');
+                subjectInput.value = value;
 
-    <!-- Page Scripts -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const subjectInput = document.getElementById('subject');
-            const quickButtons = document.querySelectorAll('.quick-subject-btn');
-
-            quickButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const value = this.getAttribute('data-subject');
-                    subjectInput.value = value;
-
-                    quickButtons.forEach(btn => {
-                        btn.classList.remove('btn-secondary', 'text-white');
-                        btn.classList.add('btn-outline-secondary');
-                    });
-                    this.classList.remove('btn-outline-secondary');
-                    this.classList.add('btn-secondary', 'text-white');
+                quickButtons.forEach(btn => {
+                    btn.classList.remove('btn-secondary', 'text-white');
+                    btn.classList.add('btn-outline-secondary');
                 });
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-secondary', 'text-white');
             });
-
-            const textarea = document.getElementById('message');
-            const counter = document.getElementById('char-counter');
-
-            function updateCounter() {
-                const length = textarea.value.length;
-                counter.textContent = length + ' / 2000';
-                if (length > 1800) {
-                    counter.classList.add('text-danger');
-                    counter.classList.remove('text-muted');
-                } else {
-                    counter.classList.remove('text-danger');
-                    counter.classList.add('text-muted');
-                }
-            }
-
-            textarea.addEventListener('input', updateCounter);
-            updateCounter();
         });
-    </script>
-</body>
-</html>
+
+        const textarea = document.getElementById('message');
+        const counter = document.getElementById('char-counter');
+
+        function updateCounter() {
+            const length = textarea.value.length;
+            counter.textContent = length + ' / 2000';
+            if (length > 1800) {
+                counter.classList.add('text-danger');
+                counter.classList.remove('text-muted');
+            } else {
+                counter.classList.remove('text-danger');
+                counter.classList.add('text-muted');
+            }
+        }
+
+        textarea.addEventListener('input', updateCounter);
+        updateCounter();
+    });
+</script>
+@endsection
