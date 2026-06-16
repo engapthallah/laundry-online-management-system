@@ -29,6 +29,9 @@ Route::get('/dashboard', function () {
     if ($user->isDelivery()) {
         return redirect()->route('delivery.dashboard');
     }
+    if ($user->isCustomer()) {
+        return redirect()->route('customer.dashboard');
+    }
     
     return redirect()->route('home');
 })->middleware(['auth'])->name('dashboard');
@@ -125,6 +128,7 @@ Route::middleware(['auth', 'delivery'])
 
 // Customer routes
 Route::prefix('customer')->middleware(['auth', 'customer'])->name('customer.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
 
     // Orders
     Route::resource('orders', \App\Http\Controllers\Customer\OrderController::class)->only(['index', 'create', 'store', 'show']);

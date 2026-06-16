@@ -48,6 +48,8 @@ class AuthenticatedSessionController extends Controller
             $dashboardRoute = 'staff.dashboard';
         } elseif ($user->isDelivery()) {
             $dashboardRoute = 'delivery.dashboard';
+        } elseif ($user->isCustomer()) {
+            $dashboardRoute = 'customer.dashboard';
         }
 
         return redirect()->intended(route($dashboardRoute, absolute: false));
