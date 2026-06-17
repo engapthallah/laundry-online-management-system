@@ -89,7 +89,21 @@
                     </ul>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="text-white fw-medium d-none d-sm-inline">{{ Auth::user()->name }}</span>
+                    <a href="{{ route('admin.profile.index') }}"
+                       class="text-white text-decoration-none
+                              d-flex align-items-center gap-2">
+                        <div style="width:32px; height:32px;
+                                    background:rgba(255,255,255,0.2);
+                                    border-radius:50%;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    font-size:0.8rem;
+                                    font-weight:700;">
+                            {{ strtoupper(substr(Auth::user()->name,0,2)) }}
+                        </div>
+                        <span class="d-none d-sm-inline">{{ Auth::user()->name }}</span>
+                    </a>
                     <span class="badge bg-danger text-uppercase px-2 py-1 fs-8 fw-semibold">Admin</span>
                 </div>
             </div>
@@ -147,6 +161,12 @@
                         <li class="nav-item mb-2">
                             <a class="nav-link text-white {{ request()->routeIs('admin.reviews.*') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3" href="{{ route('admin.reviews.index') }}">
                                 <i class="fa-solid fa-star"></i>Reviews
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a href="{{ route('admin.profile.index') }}"
+                               class="nav-link text-white {{ request()->routeIs('admin.profile*') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3">
+                                <i class="fas fa-user-cog"></i>My Profile
                             </a>
                         </li>
                     </ul>
@@ -217,6 +237,12 @@
                         <li class="nav-item mb-2">
                             <a class="nav-link text-white {{ request()->routeIs('admin.reviews.*') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3" href="{{ route('admin.reviews.index') }}">
                                 <i class="fa-solid fa-star"></i>Reviews
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a href="{{ route('admin.profile.index') }}"
+                               class="nav-link text-white {{ request()->routeIs('admin.profile*') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3">
+                                <i class="fas fa-user-cog"></i>My Profile
                             </a>
                         </li>
                     </ul>

@@ -81,6 +81,11 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/analytics/print', [\App\Http\Controllers\Admin\AnalyticsController::class, 'printable'])->name('analytics.printable');
     Route::get('/analytics/data/revenue', [\App\Http\Controllers\Admin\AnalyticsController::class, 'revenueData'])->name('analytics.revenue');
     Route::get('/analytics/data/orders', [\App\Http\Controllers\Admin\AnalyticsController::class, 'ordersData'])->name('analytics.orders');
+
+    // Admin Profile
+    Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
+    Route::patch('/profile/update', [\App\Http\Controllers\Admin\ProfileController::class, 'updateInfo'])->name('profile.updateInfo');
+    Route::patch('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 });
 
 // Staff routes
