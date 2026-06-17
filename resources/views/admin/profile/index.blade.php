@@ -214,6 +214,118 @@
         </div>
     </div>
 
+    <!-- WhatsApp Notification Status Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-bottom py-3"
+           style="border-left: 4px solid #25D366 !important;">
+        <h5 class="mb-0 fw-semibold">
+          <i class="fab fa-whatsapp me-2"
+             style="color:#25D366"></i>
+          WhatsApp Notifications
+        </h5>
+      </div>
+      <div class="card-body">
+
+        @if(config('services.whatsapp.enabled'))
+          <!-- WhatsApp is enabled -->
+          <div class="alert alert-success border-0 mb-3">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>WhatsApp notifications are ACTIVE</strong>
+            <br>
+            <small>Messages will be sent to the business phone at key order stages.</small>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-600 text-muted small">
+                PROVIDER
+              </label>
+              <div class="fw-bold text-capitalize">
+                {{ config('services.whatsapp.provider', 'callmebot') }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600 text-muted small">
+                BUSINESS PHONE
+              </label>
+              <div class="fw-bold">
+                +{{ config('services.whatsapp.business_phone', 'Not configured') }}
+              </div>
+            </div>
+          </div>
+
+          <hr>
+          <p class="text-muted small mb-3">
+            WhatsApp messages are sent at these stages:
+          </p>
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge rounded-pill px-3 py-2"
+                  style="background:#e8f5e9;
+                         color:#2e7d32;
+                         font-size:0.85rem">
+              <i class="fas fa-box-open me-1"></i>
+              Ready for Delivery
+            </span>
+            <span class="badge rounded-pill px-3 py-2"
+                  style="background:#e8f5e9;
+                         color:#2e7d32;
+                         font-size:0.85rem">
+              <i class="fas fa-check-circle me-1"></i>
+              Order Delivered
+            </span>
+          </div>
+
+          <div class="mt-3">
+            <a href="{{ route('admin.whatsapp.test') }}"
+               target="_blank"
+               class="btn btn-outline-success btn-sm">
+              <i class="fab fa-whatsapp me-1"></i>
+              Send Test Message
+            </a>
+            <small class="text-muted ms-2">
+              Opens in new tab — check for success/error
+            </small>
+          </div>
+
+        @else
+          <!-- WhatsApp is disabled -->
+          <div class="alert alert-warning border-0 mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>WhatsApp notifications are DISABLED</strong>
+          </div>
+
+          <p class="text-muted mb-3">
+            To enable WhatsApp notifications, add these environment variables in Railway dashboard:
+          </p>
+
+          <div class="bg-dark text-light p-3 rounded font-monospace small mb-3">
+            WHATSAPP_ENABLED=true<br>
+            WHATSAPP_PROVIDER=callmebot<br>
+            WHATSAPP_BUSINESS_PHONE=252XXXXXXXXX<br>
+            WHATSAPP_API_KEY=your_api_key_here
+          </div>
+
+          <div class="mt-3 p-3 rounded"
+               style="background:#f0fdf4;
+                      border:1px solid #bbf7d0">
+            <p class="fw-bold mb-2" style="color:#15803d">
+              <i class="fab fa-whatsapp me-2"></i>
+              How to get your FREE CallMeBot API Key:
+            </p>
+            <ol class="mb-0 small" style="color:#166534">
+              <li>Save <strong>+34 644 59 73 46</strong> to your phone contacts as "CallMeBot"</li>
+              <li>Send this WhatsApp message to that number:
+                  <br><code class="bg-white px-2 py-1 rounded">I allow callmebot to send me messages</code>
+              </li>
+              <li>You receive an API key — copy it</li>
+              <li>Add it to Railway environment variables</li>
+            </ol>
+          </div>
+        @endif
+
+      </div>
+    </div>
+
     <!-- SECTION 5 — DANGER ZONE CARD (LOGOUT) -->
     <div class="card mb-4" style="border: 1px solid #fee2e2; background: #fff5f5;">
         <div class="card-body p-4">

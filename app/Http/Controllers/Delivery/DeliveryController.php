@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Services\WhatsAppService;
+use App\Services\WhatsAppTemplates;
 
 class DeliveryController extends Controller
 {
@@ -156,6 +158,22 @@ class DeliveryController extends Controller
         // Trigger customer/admin notifications
         if ($newStatus === 'delivered') {
             \App\Services\NotificationService::deliveryCompleted($assignment->order);
+            
+            // WhatsApp notification for delivered
+            try {
+                $order     = $assignment->order->load('customer');
+                $waMessage = WhatsAppTemplates::orderDelivered($order);
+                WhatsAppService::send(
+                    $waMessage,
+                    $order->customer->phone ?? null
+                );
+            } catch (\Exception $e) {
+                Log::error(
+                    'WhatsApp delivered failed: '
+                    . $e->getMessage()
+                );
+            }
+
             return redirect()->route('delivery.deliveries.index')->with('success', "Order {$assignment->order->order_number} marked as delivered successfully!");
         } else {
             \App\Services\NotificationService::orderStatusUpdated($assignment->order, 'out_for_delivery');

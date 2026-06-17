@@ -162,6 +162,22 @@ class NotificationService
                     Log::error("Failed sending SMS update to customer {$customer->id} for status '{$newStatus}': " . $e->getMessage());
                 }
             }
+
+            // WhatsApp notification to business phone
+            if ($newStatus === 'ready_for_delivery') {
+                try {
+                    $waMessage = \App\Services\WhatsAppTemplates::readyForDelivery($order);
+                    \App\Services\WhatsAppService::send(
+                        $waMessage,
+                        $order->customer->phone ?? null
+                    );
+                } catch (\Exception $e) {
+                    Log::error(
+                        'WhatsApp ready_for_delivery failed: '
+                        . $e->getMessage()
+                    );
+                }
+            }
         } catch (\Exception $e) {
             Log::error("Error processing orderStatusUpdated notifications for Order #{$order->id}: " . $e->getMessage());
         }
@@ -343,6 +359,20 @@ class NotificationService
                 }
             } catch (\Exception $e) {
                 Log::error("Failed sending SMS to customer {$customer->id} on delivery: " . $e->getMessage());
+            }
+
+            // WhatsApp notification to business phone
+            try {
+                $waMessage = \App\Services\WhatsAppTemplates::orderDelivered($order);
+                \App\Services\WhatsAppService::send(
+                    $waMessage,
+                    $order->customer->phone ?? null
+                );
+            } catch (\Exception $e) {
+                Log::error(
+                    'WhatsApp delivered failed: '
+                    . $e->getMessage()
+                );
             }
 
             // 4. Admin: System Notification

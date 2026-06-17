@@ -10,6 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Services\WhatsAppService;
+use App\Services\WhatsAppTemplates;
 
 class OrderController extends Controller
 {
@@ -113,6 +115,22 @@ class OrderController extends Controller
 
         // Trigger customer notifications
         \App\Services\NotificationService::orderStatusUpdated($order, $newStatus);
+
+        // WhatsApp notification for ready_for_delivery
+        if ($newStatus === 'ready_for_delivery') {
+            try {
+                $waMessage = WhatsAppTemplates::readyForDelivery($order);
+                WhatsAppService::send(
+                    $waMessage,
+                    $order->customer->phone ?? null
+                );
+            } catch (\Exception $e) {
+                Log::error(
+                    'WhatsApp notification failed: '
+                    . $e->getMessage()
+                );
+            }
+        }
 
         $statusLabels = [
             'washing'            => 'Washing',

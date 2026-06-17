@@ -86,6 +86,26 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
     Route::patch('/profile/update', [\App\Http\Controllers\Admin\ProfileController::class, 'updateInfo'])->name('profile.updateInfo');
     Route::patch('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+
+    // WhatsApp Test Route (admin only, remove after testing)
+    Route::get('/whatsapp/test', function() {
+        if (!\App\Services\WhatsAppService::sendTestMessage()) {
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'WhatsApp test failed. Check logs for details.',
+                'config'  => [
+                    'enabled'  => config('services.whatsapp.enabled'),
+                    'provider' => config('services.whatsapp.provider'),
+                    'phone'    => config('services.whatsapp.business_phone') ? 'SET' : 'NOT SET',
+                    'api_key'  => config('services.whatsapp.api_key') ? 'SET' : 'NOT SET',
+                ],
+            ]);
+        }
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'WhatsApp test message sent!',
+        ]);
+    })->name('whatsapp.test');
 });
 
 // Staff routes

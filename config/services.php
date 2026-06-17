@@ -35,4 +35,29 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------
+    | WhatsApp Notification Configuration
+    |--------------------------------------------------
+    */
+    'whatsapp' => [
+        'enabled'        => env('WHATSAPP_ENABLED', false),
+        'provider'       => env('WHATSAPP_PROVIDER',
+                                'callmebot'),
+        'business_phone' => env('WHATSAPP_BUSINESS_PHONE'),
+        'api_key'        => env('WHATSAPP_API_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------
+    | Twilio Configuration (optional WhatsApp provider)
+    |--------------------------------------------------
+    */
+    'twilio' => [
+        'sid'            => env('TWILIO_ACCOUNT_SID'),
+        'token'          => env('TWILIO_AUTH_TOKEN'),
+        'whatsapp_from'  => env('TWILIO_WHATSAPP_FROM',
+                                'whatsapp:+14155238886'),
+    ],
+
 ];
