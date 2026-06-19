@@ -89,22 +89,62 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
 
     // WhatsApp Test Route (admin only, remove after testing)
     Route::get('/whatsapp/test', function() {
-        if (!\App\Services\WhatsAppService::sendTestMessage()) {
+        $message = "🧺 *Iimaan Dry Cleaner*\n\n"
+                 . "✅ Twilio WhatsApp test message!\n"
+                 . "Time: " . now()->format('h:i A, M d Y');
+
+        $accountSid = config('services.twilio.sid');
+        $authToken  = config('services.twilio.token');
+        $from       = config('services.twilio.whatsapp_from');
+        $to         = config('services.whatsapp.business_phone');
+
+        if (!$accountSid || !$authToken || !$from || !$to) {
             return response()->json([
-                'status'  => 'failed',
-                'message' => 'WhatsApp test failed. Check logs for details.',
-                'config'  => [
-                    'enabled'  => config('services.whatsapp.enabled'),
-                    'provider' => config('services.whatsapp.provider'),
-                    'phone'    => config('services.whatsapp.business_phone') ? 'SET' : 'NOT SET',
-                    'api_key'  => config('services.whatsapp.api_key') ? 'SET' : 'NOT SET',
+                'status' => 'failed',
+                'reason' => 'Missing configuration',
+                'config' => [
+                    'enabled'      => config('services.whatsapp.enabled'),
+                    'provider'     => config('services.whatsapp.provider'),
+                    'sid_set'      => $accountSid ? 'YES' : 'NO',
+                    'token_set'    => $authToken ? 'YES' : 'NO',
+                    'from_number'  => $from,
+                    'to_number'    => $to,
                 ],
             ]);
         }
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'WhatsApp test message sent!',
-        ]);
+
+        // Format numbers robustly for WhatsApp sandbox or live channels
+        $cleanFrom = str_replace('whatsapp:', '', $from);
+        $fromFormatted = 'whatsapp:+' . ltrim($cleanFrom, '+');
+
+        $cleanTo = str_replace('whatsapp:', '', $to);
+        $toFormatted = 'whatsapp:+' . ltrim($cleanTo, '+');
+
+        $url = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withBasicAuth($accountSid, $authToken)
+                ->asForm()
+                ->post($url, [
+                    'From' => $fromFormatted,
+                    'To'   => $toFormatted,
+                    'Body' => $message,
+                ]);
+
+            return response()->json([
+                'status'        => $response->successful() ? 'success' : 'failed',
+                'http_status'   => $response->status(),
+                'twilio_response' => $response->json(),
+                'sent_to'       => $toFormatted,
+                'sent_from'     => $fromFormatted,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'exception',
+                'error'  => $e->getMessage(),
+            ]);
+        }
     })->name('whatsapp.test');
 });
 

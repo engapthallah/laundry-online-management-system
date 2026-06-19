@@ -134,9 +134,12 @@ class WhatsAppService
             return false;
         }
 
-        // Format number for WhatsApp
-        $to   = 'whatsapp:+' . ltrim($toNumber, '+');
-        $from = 'whatsapp:' . $fromNumber;
+        // Format numbers robustly for WhatsApp sandbox or live channels
+        $cleanFrom = str_replace('whatsapp:', '', $fromNumber);
+        $from = 'whatsapp:+' . ltrim($cleanFrom, '+');
+
+        $cleanTo = str_replace('whatsapp:', '', $toNumber);
+        $to = 'whatsapp:+' . ltrim($cleanTo, '+');
 
         $url  = "https://api.twilio.com/2010-04-01"
               . "/Accounts/{$accountSid}/Messages.json";
@@ -156,8 +159,8 @@ class WhatsAppService
             return true;
         }
 
-        Log::warning('WhatsApp (Twilio) failed: '
-                     . $response->body());
+        Log::warning('WhatsApp (Twilio) failed. Status: ' . $response->status() . ' Response: '
+                     . json_encode($response->json()));
         return false;
     }
 
