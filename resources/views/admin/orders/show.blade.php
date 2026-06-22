@@ -165,24 +165,13 @@
             </div>
         </div>
 
-        <!-- Staff Assignment Control -->
+        <!-- Staff Assignment Control (Read-only) -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-body p-4">
-                <h5 class="fw-bold text-dark mb-3">Assign Laundry Operator</h5>
-                <form method="POST" action="{{ route('admin.orders.assignStaff', $order->id) }}">
-                    @csrf
-                    @method('PATCH')
-                    
-                    <div class="mb-3">
-                        <select name="staff_id" id="staff_id" class="form-select bg-light" required>
-                            <option value="" disabled {{ !$order->staff_id ? 'selected' : '' }}>Select staff member...</option>
-                            @foreach($staffMembers as $staff)
-                                <option value="{{ $staff->id }}" {{ $order->staff_id === $staff->id ? 'selected' : '' }}>{{ $staff->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">Assign Staff</button>
-                </form>
+                <h5 class="fw-bold text-dark mb-3">Assigned Laundry Operator</h5>
+                <p class="form-control-plaintext text-dark fw-semibold fs-6 mb-0">
+                    {{ $order->staff->name ?? 'Not yet assigned' }}
+                </p>
             </div>
         </div>
 

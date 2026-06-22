@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use App\Services\StaffAssignmentService;
 
 class OrderController extends Controller
 {
@@ -143,6 +144,13 @@ class OrderController extends Controller
             }
             $order->weight = $hasWeight ? $totalWeight : null;
             $order->save();
+
+            // Auto-assign order to staff using Round-Robin
+            $assignedStaff = app(StaffAssignmentService::class)->assignNextStaff();
+            if ($assignedStaff) {
+                $order->staff_id = $assignedStaff->id;
+                $order->save();
+            }
 
             // Save order items
             foreach ($itemsData as $item) {
