@@ -68,12 +68,17 @@ abstract class TestCase extends BaseTestCase
             : $this->createService();
 
         // 2. Create the order
+        $staffUser = User::where('role', 'staff')->where('is_active', true)->first();
+        $deliveryAgent = User::where('role', 'delivery')->where('is_active', true)->first();
+
         $order = Order::create(array_merge([
             'order_number' => 'LOMS-' . strtoupper(Str::random(8)),
             'customer_id' => $customer->id,
+            'staff_id' => $staffUser ? $staffUser->id : null,
+            'delivery_agent_id' => $deliveryAgent ? $deliveryAgent->id : null,
             'total_price' => 25.50,
             'weight' => 5.00,
-            'status' => 'pending',
+            'status' => 'pending_pickup',
             'payment_status' => 'pending',
             'payment_method' => 'cash',
             'pickup_address' => $customer->address ?: '123 Customer St',

@@ -20,11 +20,13 @@ class DashboardController extends Controller
         $staffId = Auth::id();
 
         // 1. Total Assigned Orders
-        $totalAssigned = Order::where('staff_id', $staffId)->count();
+        $totalAssigned = Order::where('staff_id', $staffId)
+            ->whereIn('status', ['processing', 'ready_for_delivery'])
+            ->count();
 
         // 2. Active Orders
         $activeOrdersCount = Order::where('staff_id', $staffId)
-            ->whereIn('status', ['confirmed', 'washing', 'drying', 'ironing', 'folding'])
+            ->where('status', 'processing')
             ->count();
 
         // 3. Ready for Delivery
@@ -40,7 +42,7 @@ class DashboardController extends Controller
 
         // 5. Up to 8 most recent active orders
         $activeOrders = Order::where('staff_id', $staffId)
-            ->whereIn('status', ['confirmed', 'washing', 'drying', 'ironing', 'folding'])
+            ->where('status', 'processing')
             ->with(['customer', 'orderItems.service'])
             ->orderBy('created_at', 'desc')
             ->limit(8)

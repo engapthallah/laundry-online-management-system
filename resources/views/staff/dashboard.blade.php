@@ -19,13 +19,13 @@
         font-size: 0.8rem;
         text-transform: uppercase;
     }
-    .badge-status-confirmed { background-color: #0d6efd; color: #fff; }
-    .badge-status-washing { background-color: #6610f2; color: #fff; }
-    .badge-status-drying { background-color: #6f42c1; color: #fff; }
-    .badge-status-ironing { background-color: #8f00ff; color: #fff; }
-    .badge-status-folding { background-color: #20c997; color: #fff; }
-    .badge-status-ready_for_delivery { background-color: #198754; color: #fff; }
-    .badge-status-out_for_delivery { background-color: #fd7e14; color: #fff; }
+    .badge-status-pending_pickup { background-color: #6c757d; color: #fff; }
+    .badge-status-picked_up_from_customer { background-color: #0d6efd; color: #fff; }
+    .badge-status-delivered_to_laundry { background-color: #0dcaf0; color: #212529; }
+    .badge-status-processing { background-color: #ffc107; color: #212529; }
+    .badge-status-ready_for_delivery { background-color: #20c997; color: #fff; }
+    .badge-status-picked_up_from_laundry { background-color: #0d6efd; color: #fff; }
+    .badge-status-on_the_way { background-color: #212529; color: #fff; }
     .badge-status-delivered { background-color: #198754; color: #fff; }
     .badge-status-cancelled { background-color: #dc3545; color: #fff; }
 </style>

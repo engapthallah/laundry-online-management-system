@@ -138,8 +138,8 @@
                     </tr>
                     <tr>
                         <td rowspan="4" class="fw-semibold bg-light-subtle">Secondary KPIs</td>
-                        <td>Pending / Processing Orders</td>
-                        <td class="text-end fw-bold text-warning">{{ $data['kpi']['pending_orders'] }}</td>
+                        <td>Confirmed Orders</td>
+                        <td class="text-end fw-bold text-primary">{{ $data['kpi']['confirmed_orders'] }}</td>
                     </tr>
                     <tr>
                         <td>Average Order Value (AOV)</td>

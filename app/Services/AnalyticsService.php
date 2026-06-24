@@ -94,7 +94,7 @@ class AnalyticsService
             ->count();
 
         // Secondary metrics
-        $pending_orders = Order::where('status', 'pending')
+        $confirmed_orders = Order::where('status', 'pending_pickup')
             ->whereBetween('created_at', [$start, $end])
             ->count();
 
@@ -134,7 +134,7 @@ class AnalyticsService
             'new_customers' => $new_customers,
             'delivered_orders' => $delivered_orders,
             
-            'pending_orders' => $pending_orders,
+            'confirmed_orders' => $confirmed_orders,
             'avg_order_value' => (float)$avg_order_value,
             'avg_rating' => (float)$avg_rating,
             'pending_support' => $pending_support,
@@ -214,7 +214,17 @@ class AnalyticsService
             ->pluck('count', 'status')
             ->toArray();
 
-        $statuses = ['pending', 'confirmed', 'washing', 'drying', 'ironing', 'folding', 'ready_for_delivery', 'out_for_delivery', 'delivered', 'cancelled'];
+        $statuses = [
+            'pending_pickup',
+            'picked_up_from_customer',
+            'delivered_to_laundry',
+            'processing',
+            'ready_for_delivery',
+            'picked_up_from_laundry',
+            'on_the_way',
+            'delivered',
+            'cancelled'
+        ];
         $result = [];
         foreach ($statuses as $status) {
             $result[$status] = $orders[$status] ?? 0;

@@ -37,7 +37,7 @@
 
     <div class="row g-4">
         <!-- Main Form Left Side -->
-        <div class="col-12 col-lg-8">
+        <div class="col-12" id="stepsColumn">
             
             <!-- STEP 1: SELECT SERVICES -->
             <div class="step-panel bg-white p-4 rounded-4 shadow-sm" id="step-1-panel">
@@ -50,7 +50,11 @@
                 <div class="row g-4">
                     @foreach($services as $service)
                         <div class="col-12">
-                            <div class="card border border-2 rounded-4 service-card transition-all" id="card-{{ $service->id }}">
+                            <div class="card border border-2 rounded-4 service-card service-item transition-all" id="card-{{ $service->id }}"
+                                 data-service-id="{{ $service->id }}"
+                                 data-service-name="{{ $service->name }}"
+                                 data-price-per-item="{{ $service->price_per_item }}"
+                                 data-price-per-kg="{{ $service->price_per_kg }}">
                                 <div class="card-body p-4">
                                     <div class="d-flex align-items-start gap-3">
                                         <!-- Selection Checkbox -->
@@ -86,14 +90,14 @@
                                                 <!-- Quantity Input -->
                                                 <div class="col-12 col-sm-4">
                                                     <label class="form-label fw-semibold small text-muted">Quantity</label>
-                                                    <input type="number" name="services[{{ $loop->index }}][quantity]" value="1" min="1" class="form-control qty-input">
+                                                    <input type="number" name="services[{{ $loop->index }}][quantity]" value="1" min="1" class="form-control qty-input service-qty" data-service-id="{{ $service->id }}">
                                                 </div>
                                                 
                                                 <!-- Weight Input -->
                                                 @if($service->price_per_kg > 0)
                                                     <div class="col-12 col-sm-4">
                                                         <label class="form-label fw-semibold small text-muted">Weight (KG)</label>
-                                                        <input type="number" step="0.01" min="0.1" name="services[{{ $loop->index }}][weight_kg]" class="form-control weight-input" placeholder="Optional">
+                                                        <input type="number" step="0.01" min="0.1" name="services[{{ $loop->index }}][weight_kg]" class="form-control weight-input service-weight" placeholder="Optional" data-service-id="{{ $service->id }}">
                                                     </div>
                                                 @endif
 
@@ -177,7 +181,7 @@
                 <div class="row g-3 mb-4">
                     <!-- Cash on Delivery -->
                     <div class="col-12">
-                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all active border-primary bg-primary-subtle" id="pay-card-cash">
+                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all active border-primary bg-primary-subtle" id="pay-card-cash" data-label="Cash on Delivery">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <input class="form-check-input payment-radio fs-4" type="radio" name="payment_method" id="pay-cash" value="cash" checked>
                                 <div class="fs-2 text-primary"><i class="fa-solid fa-money-bill-wave"></i></div>
@@ -191,7 +195,7 @@
 
                     <!-- Zaad Mobile Money -->
                     <div class="col-12">
-                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all" id="pay-card-zaad">
+                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all" id="pay-card-zaad" data-label="ZAAD">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <input class="form-check-input payment-radio fs-4" type="radio" name="payment_method" id="pay-zaad" value="zaad">
                                 <div class="fs-2 text-primary"><i class="fa-solid fa-mobile-screen-button"></i></div>
@@ -205,7 +209,7 @@
 
                     <!-- Edahab Mobile Money -->
                     <div class="col-12">
-                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all" id="pay-card-edahab">
+                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all" id="pay-card-edahab" data-label="EDAHAB">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <input class="form-check-input payment-radio fs-4" type="radio" name="payment_method" id="pay-edahab" value="edahab">
                                 <div class="fs-2 text-primary"><i class="fa-solid fa-mobile-screen-button"></i></div>
@@ -280,27 +284,30 @@
         </div>
 
         <!-- Sticky Right Summary Panel -->
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-md-4" id="orderSidebarColumn" style="display:none;">
             <div class="card border-0 shadow-sm rounded-4 bg-white sticky-top" style="top: 100px; z-index: 1;">
                 <div class="card-header bg-white border-0 py-3">
                     <h5 class="fw-bold text-dark mb-0">Order Summary</h5>
                 </div>
                 <div class="card-body p-4 pt-0">
-                    <div class="d-flex flex-column gap-3 mb-4" id="summary-items-list">
+                    <div class="d-flex flex-column gap-3 mb-4" id="summaryServicesList">
                         <div class="text-center py-4 text-muted small" id="summary-empty-msg">
                             No services selected.
                         </div>
                     </div>
                     <hr class="text-secondary opacity-25 my-3">
                     
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted fw-semibold">Grand Total:</span>
-                        <span class="fs-3 fw-bold text-primary" id="summary-grand-total">$0.00</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">Grand Total:</span>
+                        <span class="fw-bold text-primary fs-5" id="summaryGrandTotal">$0.00</span>
                     </div>
 
-                    <div class="bg-light p-3 rounded-3 d-none" id="summary-payment-panel">
-                        <span class="text-muted small d-block mb-1">Payment Channel</span>
-                        <div class="fw-bold text-capitalize text-dark" id="summary-payment-val">Cash on Delivery</div>
+                    <div id="summaryPaymentRow" style="display:none;">
+                        <hr class="text-secondary opacity-25 my-3">
+                        <div class="bg-light p-3 rounded-3">
+                            <span class="text-muted small d-block mb-1">Payment Channel</span>
+                            <div class="fw-bold text-capitalize text-dark" id="summaryPaymentLabel">Cash on Delivery</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -314,6 +321,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         let currentStep = 1;
         const totalSteps = 4;
+        let selectedPaymentLabel = 'Cash on Delivery';
         
         // DOM Elements
         const form = document.getElementById('multiStepOrderForm');
@@ -389,38 +397,39 @@
                 nextBtn.classList.remove('d-none');
                 confirmBtn.classList.add('d-none');
             }
+
+            // Sidebar visibility and content logic
+            const sidebarCol = document.getElementById('orderSidebarColumn');
+            const stepsCol   = document.getElementById('stepsColumn');
+            const paymentRow = document.getElementById('summaryPaymentRow');
+
+            if (step >= 3) {
+                // Show sidebar and shrink steps column
+                sidebarCol.style.display = 'block';
+                stepsCol.className = 'col-12 col-md-8';
+
+                // Rebuild summary with current selections
+                buildOrderSummary();
+
+                // Show payment row only on step 4
+                paymentRow.style.display = (step === 4) ? 'block' : 'none';
+            } else {
+                // Hide sidebar and expand steps column to full width
+                sidebarCol.style.display = 'none';
+                stepsCol.className = 'col-12';
+            }
         }
 
         // Live calculation logic
         function updatePrices() {
-            let grandTotal = 0;
-            const summaryList = document.getElementById('summary-items-list');
-            summaryList.innerHTML = '';
-            
             const checkboxes = document.querySelectorAll('.service-checkbox:checked');
             
-            if (checkboxes.length === 0) {
-                document.getElementById('summary-empty-msg').style.display = 'block';
-                summaryList.appendChild(document.getElementById('summary-empty-msg'));
-                document.getElementById('summary-grand-total').textContent = '$0.00';
-                return;
-            }
-            
-            document.getElementById('summary-empty-msg').style.display = 'none';
-
             checkboxes.forEach(function (chk) {
                 const serviceId = chk.dataset.serviceId;
-                const name = chk.dataset.name;
                 const priceItem = parseFloat(chk.dataset.priceItem);
                 const priceKg = parseFloat(chk.dataset.priceKg);
                 
-                const card = document.getElementById(`card-${serviceId}`);
                 const inputsDiv = document.getElementById(`inputs-${serviceId}`);
-                const subtotalContainer = document.getElementById(`subtotal-container-${serviceId}`);
-                
-                inputsDiv.classList.remove('d-none');
-                subtotalContainer.classList.remove('d-none');
-                card.classList.add('border-primary', 'bg-light');
                 
                 // Get qty and weight values
                 const qtyInput = inputsDiv.querySelector('.qty-input');
@@ -430,35 +439,75 @@
                 const weight = parseFloat(weightInput ? weightInput.value : 0) || 0;
                 
                 let subtotal = 0;
-                let detailsText = '';
                 
                 if (weight > 0 && priceKg > 0) {
                     subtotal = weight * priceKg;
-                    detailsText = `${weight.toFixed(2)} kg × $${priceKg.toFixed(2)}`;
                 } else {
                     subtotal = qty * priceItem;
-                    detailsText = `${qty} items × $${priceItem.toFixed(2)}`;
                 }
                 
-                grandTotal += subtotal;
-                
                 // Update subtotal display in Step 1
-                document.getElementById(`subtotal-val-${serviceId}`).textContent = `$${subtotal.toFixed(2)}`;
-                
-                // Append to sidebar summary
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'd-flex justify-content-between align-items-start small';
-                itemDiv.innerHTML = `
-                    <div>
-                        <div class="fw-bold text-dark">${name}</div>
-                        <span class="text-muted fs-9">${detailsText}</span>
-                    </div>
-                    <span class="fw-bold text-dark">$${subtotal.toFixed(2)}</span>
-                `;
-                summaryList.appendChild(itemDiv);
+                const subtotalValEl = document.getElementById(`subtotal-val-${serviceId}`);
+                if (subtotalValEl) {
+                    subtotalValEl.textContent = `$${subtotal.toFixed(2)}`;
+                }
             });
-            
-            document.getElementById('summary-grand-total').textContent = `$${grandTotal.toFixed(2)}`;
+
+            // Rebuild sidebar summary if it's currently active (steps >= 3)
+            if (currentStep >= 3) {
+                buildOrderSummary();
+            }
+        }
+
+        // Build Order Summary for Sidebar (Steps 3 & 4)
+        function buildOrderSummary() {
+            const listEl  = document.getElementById('summaryServicesList');
+            const totalEl = document.getElementById('summaryGrandTotal');
+            const checked = document.querySelectorAll('.service-checkbox:checked');
+
+            if (checked.length === 0) {
+                listEl.innerHTML = '<p class="text-muted small">No services selected.</p>';
+                totalEl.textContent = '$0.00';
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+
+            checked.forEach(function(checkbox) {
+                const serviceId    = checkbox.dataset.serviceId;
+                const serviceEl    = document.querySelector('.service-item[data-service-id="' + serviceId + '"]');
+                const serviceName  = serviceEl.dataset.serviceName;
+                const pricePerKg   = parseFloat(serviceEl.dataset.pricePerKg)   || 0;
+                const pricePerItem = parseFloat(serviceEl.dataset.pricePerItem) || 0;
+                
+                const qty    = parseFloat(document.querySelector('.service-qty[data-service-id="'    + serviceId + '"]')?.value) || 0;
+                const weight = parseFloat(document.querySelector('.service-weight[data-service-id="' + serviceId + '"]')?.value) || 0;
+                
+                let subtotal = 0;
+                if (weight > 0 && pricePerKg > 0) {
+                    subtotal = weight * pricePerKg;
+                } else {
+                    subtotal = qty * pricePerItem;
+                }
+                total += subtotal;
+
+                html += `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-semibold small">${serviceName}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">
+                            ${qty > 0 ? 'Qty: ' + qty : ''}
+                            ${weight > 0 ? (qty > 0 ? ' · ' : '') + weight + ' kg' : ''}
+                        </div>
+                    </div>
+                    <span class="text-primary small fw-semibold">$${subtotal.toFixed(2)}</span>
+                </div>`;
+            });
+
+            listEl.innerHTML = html;
+            totalEl.textContent = '$' + total.toFixed(2);
+            document.getElementById('summaryPaymentLabel').textContent = selectedPaymentLabel;
         }
 
         // Event listeners for Step 1 selection and inputs
@@ -505,9 +554,12 @@
                     document.getElementById('payment_phone').required = false;
                 }
                 
-                // Update side panel payment
-                document.getElementById('summary-payment-panel').classList.remove('d-none');
-                document.getElementById('summary-payment-val').textContent = radio.value === 'cash' ? 'Cash on Delivery' : radio.value.toUpperCase();
+                // Update selected payment label and the summary label element
+                selectedPaymentLabel = this.dataset.label;
+                const summaryPaymentLabel = document.getElementById('summaryPaymentLabel');
+                if (summaryPaymentLabel) {
+                    summaryPaymentLabel.textContent = selectedPaymentLabel;
+                }
             });
         });
         

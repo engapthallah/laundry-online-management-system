@@ -5,15 +5,15 @@ Your order status has been updated.
 
 @php
     $statusMessages = [
-        'confirmed'          => "Your order has been confirmed and will be processed soon.",
-        'washing'            => "Your clothes are now being washed.",
-        'drying'             => "Your clothes are being dried.",
-        'ironing'            => "Your clothes are being ironed.",
-        'folding'            => "Your clothes are being folded and prepared for delivery.",
-        'ready_for_delivery' => "Your order is ready! Our delivery team will collect it shortly.",
-        'out_for_delivery'   => "Your order is on its way! Please be available at your delivery address.",
-        'delivered'          => "Your order has been delivered. Thank you for choosing LOMS! Please leave a review.",
-        'cancelled'          => "Your order has been cancelled. Contact support if this was an error.",
+        'pending_pickup'          => "Your order is waiting for pickup by our delivery agent.",
+        'picked_up_from_customer' => "Your laundry has been collected by our agent.",
+        'delivered_to_laundry'    => "Laundry arrived at our shop.",
+        'processing'              => "We are cleaning your laundry.",
+        'ready_for_delivery'      => "Your laundry is ready! Our delivery agent will collect it shortly.",
+        'picked_up_from_laundry'  => "Your laundry has been collected from the shop.",
+        'on_the_way'              => "Almost there! Our delivery agent is on the way to you.",
+        'delivered'               => "Your order has been delivered. Thank you for choosing LOMS! Please leave a review.",
+        'cancelled'               => "Your order has been cancelled. Contact support if this was an error.",
     ];
     $messageText = $statusMessages[$status] ?? "Your order status has been updated.";
     $statusLabel = ucwords(str_replace('_', ' ', $status));

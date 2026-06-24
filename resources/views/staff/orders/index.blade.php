@@ -11,12 +11,15 @@
         text-transform: uppercase;
         display: inline-block;
     }
-    .badge-status-confirmed { background-color: #0d6efd; color: #fff; }
-    .badge-status-washing { background-color: #6610f2; color: #fff; }
-    .badge-status-drying { background-color: #6f42c1; color: #fff; }
-    .badge-status-ironing { background-color: #8f00ff; color: #fff; }
-    .badge-status-folding { background-color: #20c997; color: #fff; }
-    .badge-status-ready_for_delivery { background-color: #198754; color: #fff; }
+    .badge-status-pending_pickup { background-color: #6c757d; color: #fff; }
+    .badge-status-picked_up_from_customer { background-color: #0d6efd; color: #fff; }
+    .badge-status-delivered_to_laundry { background-color: #0dcaf0; color: #212529; }
+    .badge-status-processing { background-color: #ffc107; color: #212529; }
+    .badge-status-ready_for_delivery { background-color: #20c997; color: #fff; }
+    .badge-status-picked_up_from_laundry { background-color: #0d6efd; color: #fff; }
+    .badge-status-on_the_way { background-color: #212529; color: #fff; }
+    .badge-status-delivered { background-color: #198754; color: #fff; }
+    .badge-status-cancelled { background-color: #dc3545; color: #fff; }
 
     /* Custom hover transition for table rows */
     .table-hover tbody tr {
@@ -91,12 +94,9 @@
             <label for="status" class="form-label fw-semibold text-secondary small">Filter Status</label>
             <select class="form-select bg-light" id="status" name="status">
                 <option value="">All Statuses</option>
-                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Processes (Washing-Folding)</option>
+                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Processes (Confirmed-Processing)</option>
                 <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                <option value="washing" {{ request('status') === 'washing' ? 'selected' : '' }}>Washing</option>
-                <option value="drying" {{ request('status') === 'drying' ? 'selected' : '' }}>Drying</option>
-                <option value="ironing" {{ request('status') === 'ironing' ? 'selected' : '' }}>Ironing</option>
-                <option value="folding" {{ request('status') === 'folding' ? 'selected' : '' }}>Folding</option>
+                <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Processing</option>
                 <option value="ready_for_delivery" {{ request('status') === 'ready_for_delivery' ? 'selected' : '' }}>Ready for Delivery</option>
             </select>
         </div>

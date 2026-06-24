@@ -45,7 +45,7 @@ class AnalyticsServiceTest extends TestCase
             'total_orders',
             'new_customers',
             'delivered_orders',
-            'pending_orders',
+            'confirmed_orders',
             'avg_order_value',
             'avg_rating',
             'pending_support',
@@ -75,8 +75,8 @@ class AnalyticsServiceTest extends TestCase
     public function test_orders_by_status_returns_all_statuses()
     {
         $customer = $this->createCustomer();
-        $this->createOrder($customer, ['status' => 'pending']);
-        $this->createOrder($customer, ['status' => 'washing']);
+        $this->createOrder($customer, ['status' => 'pending_pickup']);
+        $this->createOrder($customer, ['status' => 'processing']);
         $this->createOrder($customer, ['status' => 'delivered']);
 
         $start = Carbon::now()->subDay()->startOfDay();
@@ -84,8 +84,8 @@ class AnalyticsServiceTest extends TestCase
 
         $stats = AnalyticsService::getOrdersByStatus($start, $end);
 
-        $this->assertEquals(1, $stats['pending']);
-        $this->assertEquals(1, $stats['washing']);
+        $this->assertEquals(1, $stats['pending_pickup']);
+        $this->assertEquals(1, $stats['processing']);
         $this->assertEquals(1, $stats['delivered']);
         $this->assertEquals(0, $stats['cancelled']);
     }

@@ -11,13 +11,13 @@
         text-transform: uppercase;
         display: inline-block;
     }
-    .badge-status-confirmed { background-color: #0d6efd; color: #fff; }
-    .badge-status-washing { background-color: #6610f2; color: #fff; }
-    .badge-status-drying { background-color: #6f42c1; color: #fff; }
-    .badge-status-ironing { background-color: #8f00ff; color: #fff; }
-    .badge-status-folding { background-color: #20c997; color: #fff; }
-    .badge-status-ready_for_delivery { background-color: #198754; color: #fff; }
-    .badge-status-out_for_delivery { background-color: #fd7e14; color: #fff; }
+    .badge-status-pending_pickup { background-color: #6c757d; color: #fff; }
+    .badge-status-picked_up_from_customer { background-color: #0d6efd; color: #fff; }
+    .badge-status-delivered_to_laundry { background-color: #0dcaf0; color: #212529; }
+    .badge-status-processing { background-color: #ffc107; color: #212529; }
+    .badge-status-ready_for_delivery { background-color: #20c997; color: #fff; }
+    .badge-status-picked_up_from_laundry { background-color: #0d6efd; color: #fff; }
+    .badge-status-on_the_way { background-color: #212529; color: #fff; }
     .badge-status-delivered { background-color: #198754; color: #fff; }
     .badge-status-cancelled { background-color: #dc3545; color: #fff; }
 
@@ -313,11 +313,8 @@
 
             @php
                 $nextStatusMap = [
-                    'confirmed'          => ['status' => 'washing', 'label' => 'Washing', 'btn_class' => 'btn-indigo', 'icon' => 'fa-soap'],
-                    'washing'            => ['status' => 'drying', 'label' => 'Drying', 'btn_class' => 'btn-purple', 'icon' => 'fa-wind'],
-                    'drying'             => ['status' => 'ironing', 'label' => 'Ironing', 'btn_class' => 'btn-violet', 'icon' => 'fa-shirt'],
-                    'ironing'            => ['status' => 'folding', 'label' => 'Folding', 'btn_class' => 'btn-teal', 'icon' => 'fa-box-archive'],
-                    'folding'            => ['status' => 'ready_for_delivery', 'label' => 'Ready for Delivery', 'btn_class' => 'btn-success', 'icon' => 'fa-circle-check'],
+                    'confirmed'          => ['status' => 'processing', 'label' => 'Processing', 'btn_class' => 'btn-warning text-dark', 'icon' => 'fa-play', 'btn_text' => 'Start Processing'],
+                    'processing'         => ['status' => 'ready_for_delivery', 'label' => 'Ready for Delivery', 'btn_class' => 'btn-info text-dark', 'icon' => 'fa-circle-check', 'btn_text' => 'Mark Ready for Delivery'],
                 ];
 
                 $next = $nextStatusMap[$order->status] ?? null;
@@ -336,7 +333,7 @@
                     
                     <button type="submit" class="btn {{ $next['btn_class'] }} btn-lg w-100 py-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" id="btn-update-status">
                         <i class="fa-solid {{ $next['icon'] }} fs-4"></i>
-                        <span>Start {{ $next['label'] }}</span>
+                        <span>{{ $next['btn_text'] }}</span>
                     </button>
                 </form>
             @else
@@ -355,12 +352,14 @@
             <div class="timeline-container">
                 @php
                     $timelineSteps = [
-                        'confirmed'          => 'Order Confirmed',
-                        'washing'            => 'Washing Process',
-                        'drying'             => 'Drying Process',
-                        'ironing'            => 'Ironing Process',
-                        'folding'            => 'Folding Process',
-                        'ready_for_delivery' => 'Ready for Delivery',
+                        'pending_pickup'          => 'Waiting for Pickup',
+                        'picked_up_from_customer' => 'Collected from Customer',
+                        'delivered_to_laundry'    => 'Delivered to Shop',
+                        'processing'              => 'Processing',
+                        'ready_for_delivery'      => 'Ready for Delivery',
+                        'picked_up_from_laundry'  => 'Collected from Shop',
+                        'on_the_way'              => 'On the Way',
+                        'delivered'               => 'Delivered',
                     ];
 
                     $orderStates = array_keys($timelineSteps);

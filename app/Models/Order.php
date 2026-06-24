@@ -21,6 +21,7 @@ class Order extends Model
         'order_number',
         'customer_id',
         'staff_id',
+        'delivery_agent_id',
         'total_price',
         'weight',
         'status',
@@ -59,6 +60,11 @@ class Order extends Model
     public function staff(): BelongsTo
     {
         return $this->belongsTo(User::class, 'staff_id');
+    }
+
+    public function deliveryAgent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'delivery_agent_id');
     }
 
     public function orderItems(): HasMany

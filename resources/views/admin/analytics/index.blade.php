@@ -161,16 +161,16 @@
 
 <!-- ROW 2 — SECONDARY KPI CARDS -->
 <div class="row g-3 mb-4">
-    <!-- Card 5: Pending Orders -->
+    <!-- Card 5: Confirmed Orders -->
     <div class="col-xl-3 col-md-6">
-        <div class="card h-100 shadow-sm kpi-card border-top border-warning">
+        <div class="card h-100 shadow-sm kpi-card border-top border-primary">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="text-muted text-uppercase mb-0 small fw-bold">Pending Orders</h6>
-                    <i class="fas fa-hourglass-half fa-lg text-warning opacity-50"></i>
+                    <h6 class="text-muted text-uppercase mb-0 small fw-bold">Confirmed Orders</h6>
+                    <i class="fas fa-check-double fa-lg text-primary opacity-50"></i>
                 </div>
-                <h2 class="mb-1 font-weight-bold fw-bold text-dark">{{ $kpi['pending_orders'] }}</h2>
-                <div class="text-muted small">Awaiting processing</div>
+                <h2 class="mb-1 font-weight-bold fw-bold text-dark">{{ $kpi['confirmed_orders'] }}</h2>
+                <div class="text-muted small">Awaiting staff processing</div>
             </div>
         </div>
     </div>

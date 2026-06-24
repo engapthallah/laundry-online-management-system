@@ -35,14 +35,14 @@ class StatusUpdateTest extends TestCase
         $customer = $this->createCustomer();
         $order = $this->createOrder($customer, [
             'staff_id' => $staff->id,
-            'status' => 'confirmed',
+            'status' => 'processing',
         ]);
 
+        // processing -> ready_for_delivery
         $response = $this->actingAs($staff)->patch("/staff/orders/{$order->id}/status", [
-            'status' => 'washing',
+            'status' => 'ready_for_delivery',
         ]);
-
-        $this->assertEquals('washing', $order->fresh()->status);
+        $this->assertEquals('ready_for_delivery', $order->fresh()->status);
         $response->assertRedirect(route('staff.orders.show', $order->id));
     }
 
@@ -52,16 +52,16 @@ class StatusUpdateTest extends TestCase
         $customer = $this->createCustomer();
         $order = $this->createOrder($customer, [
             'staff_id' => $staff->id,
-            'status' => 'confirmed',
+            'status' => 'pending_pickup',
         ]);
 
-        // Attempting to transition from confirmed directly to folding (skipping washing, drying, ironing)
+        // Attempting to transition from pending_pickup directly to ready_for_delivery (skipping processing)
         $response = $this->actingAs($staff)->patch("/staff/orders/{$order->id}/status", [
-            'status' => 'folding',
+            'status' => 'ready_for_delivery',
         ]);
 
-        $this->assertEquals('confirmed', $order->fresh()->status);
-        $response->assertSessionHas('error');
+        $this->assertEquals('pending_pickup', $order->fresh()->status);
+        $response->assertStatus(403);
     }
 
     public function test_staff_cannot_access_unassigned_order()
@@ -82,11 +82,11 @@ class StatusUpdateTest extends TestCase
         $customer = $this->createCustomer();
         $order = $this->createOrder($customer, [
             'staff_id' => $staff->id,
-            'status' => 'confirmed',
+            'status' => 'processing',
         ]);
 
         $response = $this->actingAs($staff)->patch("/staff/orders/{$order->id}/status", [
-            'status' => 'washing',
+            'status' => 'ready_for_delivery',
         ]);
 
         $notification = Notification::where('user_id', $customer->id)
@@ -95,7 +95,7 @@ class StatusUpdateTest extends TestCase
             ->first();
 
         $this->assertNotNull($notification);
-        $this->assertStringContainsString('washed', $notification->message);
+        $this->assertStringContainsString('ready', $notification->message);
     }
 
     public function test_staff_cannot_set_delivered_status()
@@ -104,7 +104,7 @@ class StatusUpdateTest extends TestCase
         $customer = $this->createCustomer();
         $order = $this->createOrder($customer, [
             'staff_id' => $staff->id,
-            'status' => 'folding',
+            'status' => 'processing',
         ]);
 
         $response = $this->actingAs($staff)->patch("/staff/orders/{$order->id}/status", [

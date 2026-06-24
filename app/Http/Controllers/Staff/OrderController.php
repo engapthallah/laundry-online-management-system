@@ -21,7 +21,9 @@ class OrderController extends Controller
     public function index(Request $request): View
     {
         $staffId = Auth::id();
-        $query = Order::where('staff_id', $staffId)->with(['customer', 'orderItems.service']);
+        $query = Order::where('staff_id', $staffId)
+            ->whereIn('status', ['processing', 'ready_for_delivery'])
+            ->with(['customer', 'orderItems.service']);
 
         // Search by order number
         if ($request->filled('search')) {
@@ -32,7 +34,7 @@ class OrderController extends Controller
         if ($request->filled('status')) {
             $status = $request->status;
             if ($status === 'active') {
-                $query->whereIn('status', ['confirmed', 'washing', 'drying', 'ironing', 'folding']);
+                $query->where('status', 'processing');
             } else {
                 $query->where('status', $status);
             }
@@ -89,24 +91,20 @@ class OrderController extends Controller
 
         // Input validation
         $request->validate([
-            'status' => 'required|string|in:washing,drying,ironing,folding,ready_for_delivery',
+            'status' => 'required|string|in:ready_for_delivery',
         ]);
 
         $currentStatus = $order->status;
         $newStatus = $request->status;
 
         // Enforce transition rules
-        $validNext = [
-            'confirmed'          => 'washing',
-            'washing'            => 'drying',
-            'drying'             => 'ironing',
-            'ironing'            => 'folding',
-            'folding'            => 'ready_for_delivery',
+        $validTransitions = [
+            'processing'  => 'ready_for_delivery',
         ];
 
-        if (!isset($validNext[$currentStatus]) || $validNext[$currentStatus] !== $newStatus) {
+        if (!isset($validTransitions[$currentStatus]) || $validTransitions[$currentStatus] !== $newStatus) {
             Log::warning("Invalid status transition attempt by Staff ID " . Auth::id() . " on Order #{$order->order_number} from '{$currentStatus}' to '{$newStatus}'");
-            return redirect()->back()->with('error', 'Invalid status transition. You must update orders sequentially.');
+            abort(403, 'Invalid status transition.');
         }
 
         // Perform the status change
@@ -133,10 +131,6 @@ class OrderController extends Controller
         }
 
         $statusLabels = [
-            'washing'            => 'Washing',
-            'drying'             => 'Drying',
-            'ironing'            => 'Ironing',
-            'folding'            => 'Folding',
             'ready_for_delivery' => 'Ready for Delivery',
         ];
         $label = $statusLabels[$newStatus] ?? ucwords(str_replace('_', ' ', $newStatus));

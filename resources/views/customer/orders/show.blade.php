@@ -8,8 +8,8 @@
             <i class="fa-solid fa-arrow-left me-2"></i>Back to My Orders
         </a>
         
-        <!-- Cancel Order Button (Section 7: Only visible if status is pending) -->
-        @if($order->status === 'pending')
+        <!-- Cancel Order Button (Section 7: Only visible if status is pending_pickup) -->
+        @if($order->status === 'pending_pickup')
             <form method="POST" action="{{ route('customer.orders.cancel', $order->id) }}" id="cancel-order-form" class="m-0">
                 @csrf
                 <button type="submit" class="btn btn-danger fw-semibold">
@@ -58,7 +58,17 @@
     </div>
     <div class="card-body p-4 pt-0">
         @php
-            $allStatuses = ['pending', 'confirmed', 'washing', 'drying', 'ironing', 'folding', 'ready_for_delivery', 'out_for_delivery', 'delivered'];
+            $statusLabels = [
+                'pending_pickup'          => 'Waiting for Pickup',
+                'picked_up_from_customer' => 'Your laundry has been collected',
+                'delivered_to_laundry'    => 'Laundry arrived at our shop',
+                'processing'              => 'We are cleaning your laundry',
+                'ready_for_delivery'      => 'Your laundry is ready',
+                'picked_up_from_laundry'  => 'Out for delivery',
+                'on_the_way'              => 'Almost there!',
+                'delivered'               => 'Delivered successfully',
+            ];
+            $allStatuses = array_keys($statusLabels);
             $currentStatusIndex = array_search($order->status, $allStatuses);
         @endphp
 
@@ -99,8 +109,8 @@
                                         {{ $index + 1 }}
                                     </div>
                                 @endif
-                                <span class="small fw-semibold text-capitalize text-dark mt-2" style="font-size: 0.7rem;">
-                                    {{ str_replace('_', ' ', $status) }}
+                                <span class="small fw-semibold text-dark mt-2 text-center" style="font-size: 0.65rem; max-width: 100px; line-height: 1.2;">
+                                    {{ $statusLabels[$status] }}
                                 </span>
                             </div>
                         @endforeach
@@ -116,17 +126,17 @@
                             <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; min-width: 28px;">
                                 <i class="fa-solid fa-check small"></i>
                             </div>
-                            <span class="text-success small fw-semibold text-capitalize">{{ str_replace('_', ' ', $status) }} (Completed)</span>
+                            <span class="text-success small fw-semibold">{{ $statusLabels[$status] }} (Completed)</span>
                         @elseif($index === $currentStatusIndex)
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; min-width: 28px;">
                                 <i class="fa-solid fa-circle-dot small"></i>
                             </div>
-                            <span class="text-primary small fw-bold text-capitalize">{{ str_replace('_', ' ', $status) }} (Current Status)</span>
+                            <span class="text-primary small fw-bold">{{ $statusLabels[$status] }} (Current Status)</span>
                         @else
                             <div class="rounded-circle bg-white text-muted border border-secondary-subtle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; min-width: 28px;">
                                 {{ $index + 1 }}
                             </div>
-                            <span class="text-muted small text-capitalize">{{ str_replace('_', ' ', $status) }}</span>
+                            <span class="text-muted small">{{ $statusLabels[$status] }}</span>
                         @endif
                     </div>
                 @endforeach
@@ -296,30 +306,30 @@
                 <h5 class="fw-bold text-dark mb-0">Courier Information</h5>
             </div>
             <div class="card-body p-4 pt-0">
-                @if($order->deliveryAssignment)
+                @if($order->deliveryAgent)
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="rounded-circle bg-warning-subtle text-warning p-3">
                             <i class="fa-solid fa-truck fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold text-dark mb-0">{{ $order->deliveryAssignment->deliveryAgent->name ?? 'N/A' }}</h6>
+                            <h6 class="fw-bold text-dark mb-0">{{ $order->deliveryAgent->name ?? 'N/A' }}</h6>
                             <span class="badge bg-warning text-dark text-uppercase fs-9">Courier</span>
                         </div>
                     </div>
                     <div class="small text-muted mb-2">
-                        <i class="fa-regular fa-envelope me-2"></i>{{ $order->deliveryAssignment->deliveryAgent->email ?? 'N/A' }}
+                        <i class="fa-regular fa-envelope me-2"></i>{{ $order->deliveryAgent->email ?? 'N/A' }}
                     </div>
                     <div class="small text-muted mb-2">
-                        <i class="fa-solid fa-phone me-2"></i>{{ $order->deliveryAssignment->deliveryAgent->phone ?? 'N/A' }}
+                        <i class="fa-solid fa-phone me-2"></i>{{ $order->deliveryAgent->phone ?? 'N/A' }}
                     </div>
                     <div class="d-flex justify-content-between small mt-3">
                         <span class="text-muted">Delivery Status:</span>
-                        <span class="badge bg-info text-capitalize">{{ $order->deliveryAssignment->status }}</span>
+                        <span class="badge bg-info text-capitalize">{{ str_replace('_', ' ', $order->status) }}</span>
                     </div>
                 @else
                     <div class="text-center py-3 text-muted">
                         <i class="fa-solid fa-truck fs-3 mb-2 d-block text-secondary"></i>
-                        A courier agent will be assigned once your order is processed.
+                        A courier agent will be assigned shortly.
                     </div>
                 @endif
             </div>

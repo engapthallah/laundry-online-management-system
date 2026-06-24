@@ -4,7 +4,6 @@ namespace Tests\Feature\Integration;
 
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\DeliveryAssignment;
 use App\Models\Notification;
 use App\Models\Review;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,8 +25,9 @@ class CompleteOrderFlowTest extends TestCase
         // STEP 1 — Setup:
         $admin = $this->createAdmin();
         $customer = $this->createCustomer();
-        $staff = $this->createStaff();
-        $deliveryAgent = $this->createDelivery();
+        // Create active staff and delivery agent so round-robin auto-assignment succeeds
+        $staff = $this->createStaff(['name' => 'Alice Staff']);
+        $deliveryAgent = $this->createDelivery(['name' => 'Bob Delivery']);
         $service = $this->createService(['name' => 'Washing', 'price_per_kg' => 5.00]);
 
         // STEP 2 — Customer places order:
@@ -49,83 +49,53 @@ class CompleteOrderFlowTest extends TestCase
 
         $order = Order::latest()->first();
         $this->assertNotNull($order);
-        $this->assertEquals('pending', $order->status);
+        
+        // Assert initial status and auto-assigned staff/agent
+        $this->assertEquals('pending_pickup', $order->status);
         $this->assertEquals('pending', $order->payment_status);
+        $this->assertEquals($staff->id, $order->staff_id);
+        $this->assertEquals($deliveryAgent->id, $order->delivery_agent_id);
 
         // Assert 2 Notifications created (customer + admin)
         $this->assertTrue(Notification::where('user_id', $customer->id)->where('order_id', $order->id)->exists());
         $this->assertTrue(Notification::where('user_id', $admin->id)->where('order_id', $order->id)->exists());
 
-        // STEP 3 — Admin confirms order and assigns staff:
-        $response = $this->actingAs($admin)->patch("/admin/orders/{$order->id}/status", [
-            'status' => 'confirmed',
+        // STEP 3 — Delivery Agent: pending_pickup -> picked_up_from_customer
+        $response = $this->actingAs($deliveryAgent)->patch("/delivery/orders/{$order->id}/status");
+        $this->assertEquals('picked_up_from_customer', $order->fresh()->status);
+
+        // STEP 4 — Delivery Agent: picked_up_from_customer -> delivered_to_laundry (auto-advances to processing)
+        $response = $this->actingAs($deliveryAgent)->patch("/delivery/orders/{$order->id}/status");
+        $this->assertEquals('processing', $order->fresh()->status);
+
+        // STEP 5 — Staff: processing -> ready_for_delivery
+        $response = $this->actingAs($staff)->patch("/staff/orders/{$order->id}/status", [
+            'status' => 'ready_for_delivery',
         ]);
-        $this->assertEquals('confirmed', $order->fresh()->status);
+        $this->assertEquals('ready_for_delivery', $order->fresh()->status);
 
-        $response = $this->actingAs($admin)->patch("/admin/orders/{$order->id}/assign-staff", [
-            'staff_id' => $staff->id,
-        ]);
-        $this->assertEquals($staff->id, $order->fresh()->staff_id);
+        // STEP 6 — Delivery Agent: ready_for_delivery -> picked_up_from_laundry
+        $response = $this->actingAs($deliveryAgent)->patch("/delivery/orders/{$order->id}/status");
+        $this->assertEquals('picked_up_from_laundry', $order->fresh()->status);
 
-        // STEP 4 — Staff processes through all stages:
-        $stages = ['washing', 'drying', 'ironing', 'folding', 'ready_for_delivery'];
-        foreach ($stages as $nextStatus) {
-            $response = $this->actingAs($staff)->patch("/staff/orders/{$order->id}/status", [
-                'status' => $nextStatus,
-            ]);
-            $this->assertEquals($nextStatus, $order->fresh()->status);
-            $this->assertTrue(Notification::where('user_id', $customer->id)
-                ->where('order_id', $order->id)
-                ->where('message', 'like', "%{$nextStatus}%")
-                ->orWhere('title', 'like', "%{$nextStatus}%")
-                ->exists() || Notification::where('user_id', $customer->id)->where('order_id', $order->id)->exists());
-        }
+        // STEP 7 — Delivery Agent: picked_up_from_laundry -> on_the_way
+        $response = $this->actingAs($deliveryAgent)->patch("/delivery/orders/{$order->id}/status");
+        $this->assertEquals('on_the_way', $order->fresh()->status);
 
-        // STEP 5 — Admin assigns delivery agent:
-        $response = $this->actingAs($admin)->post('/admin/delivery', [
-            'order_id' => $order->id,
-            'delivery_agent_id' => $deliveryAgent->id,
-        ]);
-
-        $assignment = DeliveryAssignment::latest()->first();
-        $this->assertNotNull($assignment);
-        $this->assertEquals($deliveryAgent->id, $assignment->delivery_agent_id);
-        $this->assertEquals('assigned', $assignment->status);
-        // Note: Admin/DeliveryController::store sets the order status to out_for_delivery immediately
-        $this->assertEquals('out_for_delivery', $order->fresh()->status);
-
-        // STEP 6 — Delivery agent completes delivery:
-        // Set assignment state to picked_up (valid next state from assigned)
-        $response = $this->actingAs($deliveryAgent)->patch("/delivery/deliveries/{$assignment->id}/status", [
-            'status' => 'picked_up',
-        ]);
-        $this->assertEquals('picked_up', $assignment->fresh()->status);
-        $this->assertEquals('out_for_delivery', $order->fresh()->status);
-
-        // Set assignment state to on_the_way (valid next state from picked_up)
-        $response = $this->actingAs($deliveryAgent)->patch("/delivery/deliveries/{$assignment->id}/status", [
-            'status' => 'on_the_way',
-        ]);
-        $this->assertEquals('on_the_way', $assignment->fresh()->status);
-
-        // Set assignment state to delivered (valid next state from on_the_way)
-        $response = $this->actingAs($deliveryAgent)->patch("/delivery/deliveries/{$assignment->id}/status", [
-            'status' => 'delivered',
-        ]);
-        $this->assertEquals('delivered', $assignment->fresh()->status);
-        $this->assertNotNull($assignment->fresh()->delivered_at);
+        // STEP 8 — Delivery Agent: on_the_way -> delivered
+        $response = $this->actingAs($deliveryAgent)->patch("/delivery/orders/{$order->id}/status");
         $this->assertEquals('delivered', $order->fresh()->status);
         $this->assertEquals('paid', $order->fresh()->payment_status);
         $this->assertEquals('completed', $order->fresh()->payment->status);
 
-        // STEP 7 — Customer submits review:
+        // STEP 9 — Customer submits review:
         $response = $this->actingAs($customer)->post('/customer/reviews', [
             'order_id' => $order->id,
             'rating' => 5,
             'comment' => 'Excellent service!',
         ]);
 
-        // STEP 8 — Final assertions:
+        // STEP 10 — Final assertions:
         $this->assertDatabaseHas('reviews', [
             'order_id' => $order->id,
             'customer_id' => $customer->id,
@@ -133,12 +103,10 @@ class CompleteOrderFlowTest extends TestCase
             'comment' => 'Excellent service!',
         ]);
 
-        $customerNotificationsCount = Notification::where('user_id', $customer->id)->count();
-        $this->assertTrue($customerNotificationsCount >= 8);
         $this->assertEquals('delivered', Order::find($order->id)->status);
         $this->assertEquals('completed', Payment::where('order_id', $order->id)->first()->status);
         $this->assertTrue(Review::where('order_id', $order->id)->exists());
 
-        echo "✅ Complete order lifecycle test passed!\n";
+        echo "   Complete order lifecycle test passed!\n";
     }
 }

@@ -26,14 +26,13 @@
                 <label for="status" class="form-label fw-semibold text-muted small">Filter by Order Status</label>
                 <select name="status" id="status" class="form-select bg-light">
                     <option value="">All Statuses</option>
-                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                    <option value="washing" {{ request('status') === 'washing' ? 'selected' : '' }}>Washing</option>
-                    <option value="drying" {{ request('status') === 'drying' ? 'selected' : '' }}>Drying</option>
-                    <option value="ironing" {{ request('status') === 'ironing' ? 'selected' : '' }}>Ironing</option>
-                    <option value="folding" {{ request('status') === 'folding' ? 'selected' : '' }}>Folding</option>
+                    <option value="pending_pickup" {{ request('status') === 'pending_pickup' ? 'selected' : '' }}>Pending Pickup</option>
+                    <option value="picked_up_from_customer" {{ request('status') === 'picked_up_from_customer' ? 'selected' : '' }}>Picked Up</option>
+                    <option value="delivered_to_laundry" {{ request('status') === 'delivered_to_laundry' ? 'selected' : '' }}>At Laundry</option>
+                    <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Processing</option>
                     <option value="ready_for_delivery" {{ request('status') === 'ready_for_delivery' ? 'selected' : '' }}>Ready for Delivery</option>
-                    <option value="out_for_delivery" {{ request('status') === 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                    <option value="picked_up_from_laundry" {{ request('status') === 'picked_up_from_laundry' ? 'selected' : '' }}>Picked Up from Laundry</option>
+                    <option value="on_the_way" {{ request('status') === 'on_the_way' ? 'selected' : '' }}>On the Way</option>
                     <option value="delivered" {{ request('status') === 'delivered' ? 'selected' : '' }}>Delivered</option>
                     <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
@@ -77,29 +76,32 @@
                             <td class="fw-bold text-dark">${{ number_format($order->total_price, 2) }}</td>
                             <td>
                                 @switch($order->status)
-                                    @case('pending')
-                                        <span class="badge bg-warning text-dark text-capitalize">{{ $order->status }}</span>
+                                    @case('pending_pickup')
+                                        <span class="badge bg-secondary">Pending Pickup</span>
                                         @break
-                                    @case('confirmed')
-                                        <span class="badge bg-primary text-capitalize">{{ $order->status }}</span>
+                                    @case('picked_up_from_customer')
+                                        <span class="badge bg-primary">Picked Up</span>
                                         @break
-                                    @case('washing')
-                                    @case('drying')
-                                    @case('ironing')
-                                    @case('folding')
-                                        <span class="badge bg-info text-dark text-capitalize">{{ $order->status }}</span>
+                                    @case('delivered_to_laundry')
+                                        <span class="badge bg-info text-dark">At Laundry</span>
+                                        @break
+                                    @case('processing')
+                                        <span class="badge bg-warning text-dark">Processing</span>
                                         @break
                                     @case('ready_for_delivery')
-                                        <span class="badge bg-teal text-white text-capitalize">Ready</span>
+                                        <span class="badge bg-teal">Ready for Delivery</span>
                                         @break
-                                    @case('out_for_delivery')
-                                        <span class="badge bg-orange text-white text-capitalize">Out</span>
+                                    @case('picked_up_from_laundry')
+                                        <span class="badge bg-primary">Picked Up from Laundry</span>
+                                        @break
+                                    @case('on_the_way')
+                                        <span class="badge bg-dark">On the Way</span>
                                         @break
                                     @case('delivered')
-                                        <span class="badge bg-success text-capitalize">{{ $order->status }}</span>
+                                        <span class="badge bg-success">Delivered</span>
                                         @break
                                     @case('cancelled')
-                                        <span class="badge bg-danger text-capitalize">{{ $order->status }}</span>
+                                        <span class="badge bg-danger">Cancelled</span>
                                         @break
                                 @endswitch
                             </td>

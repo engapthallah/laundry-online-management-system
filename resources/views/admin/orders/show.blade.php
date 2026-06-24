@@ -138,30 +138,39 @@
 
     <!-- Right Column: Controls & Context -->
     <div class="col-12 col-lg-4">
-        <!-- Status Update Control -->
+        <!-- Order Status Display (Read-only) -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-body p-4">
-                <h5 class="fw-bold text-dark mb-3">Update Order Status</h5>
-                <form method="POST" action="{{ route('admin.orders.updateStatus', $order->id) }}">
-                    @csrf
-                    @method('PATCH')
-                    
-                    <div class="mb-3">
-                        <select name="status" id="status" class="form-select bg-light">
-                            <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                            <option value="washing" {{ $order->status === 'washing' ? 'selected' : '' }}>Washing</option>
-                            <option value="drying" {{ $order->status === 'drying' ? 'selected' : '' }}>Drying</option>
-                            <option value="ironing" {{ $order->status === 'ironing' ? 'selected' : '' }}>Ironing</option>
-                            <option value="folding" {{ $order->status === 'folding' ? 'selected' : '' }}>Folding</option>
-                            <option value="ready_for_delivery" {{ $order->status === 'ready_for_delivery' ? 'selected' : '' }}>Ready for Delivery</option>
-                            <option value="out_for_delivery" {{ $order->status === 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
-                            <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">Update Status</button>
-                </form>
+                <h5 class="fw-bold text-dark mb-3">Order Status</h5>
+                @switch($order->status)
+                    @case('pending_pickup')
+                        <span class="badge bg-secondary text-capitalize px-3 py-2 fs-6">Pending Pickup</span>
+                        @break
+                    @case('picked_up_from_customer')
+                        <span class="badge bg-primary text-capitalize px-3 py-2 fs-6">Picked Up</span>
+                        @break
+                    @case('delivered_to_laundry')
+                        <span class="badge bg-info text-dark text-capitalize px-3 py-2 fs-6">At Laundry</span>
+                        @break
+                    @case('processing')
+                        <span class="badge bg-warning text-dark text-capitalize px-3 py-2 fs-6">Processing</span>
+                        @break
+                    @case('ready_for_delivery')
+                        <span class="badge bg-teal text-capitalize px-3 py-2 fs-6">Ready for Delivery</span>
+                        @break
+                    @case('picked_up_from_laundry')
+                        <span class="badge bg-primary text-capitalize px-3 py-2 fs-6">Picked Up from Laundry</span>
+                        @break
+                    @case('on_the_way')
+                        <span class="badge bg-dark text-capitalize px-3 py-2 fs-6">On the Way</span>
+                        @break
+                    @case('delivered')
+                        <span class="badge bg-success text-capitalize px-3 py-2 fs-6">Delivered</span>
+                        @break
+                    @case('cancelled')
+                        <span class="badge bg-danger text-capitalize px-3 py-2 fs-6">Cancelled</span>
+                        @break
+                @endswitch
             </div>
         </div>
 
@@ -241,28 +250,19 @@
                 <h5 class="fw-bold text-dark mb-0">Delivery Details</h5>
             </div>
             <div class="card-body p-4 pt-0">
-                @if($order->deliveryAssignment)
+                @if($order->deliveryAgent)
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Agent:</span>
-                        <span class="fw-semibold text-dark">{{ $order->deliveryAssignment->deliveryAgent->name ?? 'N/A' }}</span>
+                        <span class="fw-semibold text-dark">{{ $order->deliveryAgent->name ?? 'N/A' }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Delivery Status:</span>
-                        <span class="badge bg-info text-uppercase">{{ $order->deliveryAssignment->status }}</span>
+                        <span class="badge bg-info text-uppercase">{{ str_replace('_', ' ', $order->status) }}</span>
                     </div>
-                    @if($order->deliveryAssignment->assigned_at)
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>Assigned:</span>
-                            <span>{{ $order->deliveryAssignment->assigned_at->format('M d, g:i A') }}</span>
-                        </div>
-                    @endif
                 @else
                     <div class="text-center py-3 text-muted">
                         <i class="fa-solid fa-truck fs-3 mb-2 d-block text-secondary"></i>
                         No delivery agent assigned yet.
-                        @if($order->status === 'ready_for_delivery')
-                            <a href="{{ route('admin.delivery.create') }}" class="btn btn-sm btn-outline-primary fw-semibold mt-2 d-block mx-auto w-75">Assign Agent</a>
-                        @endif
                     </div>
                 @endif
             </div>

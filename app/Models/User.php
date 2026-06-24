@@ -95,6 +95,11 @@ class User extends Authenticatable
         return $this->hasMany(DeliveryAssignment::class, 'delivery_agent_id');
     }
 
+    public function assignedDeliveryOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'delivery_agent_id');
+    }
+
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);

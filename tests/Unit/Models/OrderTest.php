@@ -20,10 +20,10 @@ class OrderTest extends TestCase
         $this->assertEquals('customer', $order->customer->role);
     }
 
-    public function test_order_has_default_pending_status()
+    public function test_order_has_default_confirmed_status()
     {
         $customer = $this->createCustomer();
-        // Create an order without passing a status, should default to 'pending'
+        // Create an order without passing a status, should default to 'confirmed'
         $order = Order::create([
             'order_number' => 'LOMS-' . strtoupper(Str::random(8)),
             'customer_id' => $customer->id,
@@ -33,7 +33,7 @@ class OrderTest extends TestCase
             'delivery_address' => '123 Customer St',
         ]);
 
-        $this->assertEquals('pending', $order->fresh()->status);
+        $this->assertEquals('confirmed', $order->fresh()->status);
     }
 
     public function test_order_has_default_unpaid_payment_status()

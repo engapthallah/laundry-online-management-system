@@ -124,7 +124,7 @@ class OrderController extends Controller
             $order->order_number = $orderNumber;
             $order->customer_id = Auth::id();
             $order->total_price = $totalPrice;
-            $order->status = 'pending';
+            $order->status = 'pending_pickup';
             $order->payment_status = 'pending';
             $order->payment_method = $validated['payment_method'];
             $order->pickup_address = $validated['pickup_address'];
@@ -146,11 +146,18 @@ class OrderController extends Controller
             $order->save();
 
             // Auto-assign order to staff using Round-Robin
-            $assignedStaff = app(StaffAssignmentService::class)->assignNextStaff();
+            $assignedStaff = app(\App\Services\StaffAssignmentService::class)->assignNextStaff();
             if ($assignedStaff) {
                 $order->staff_id = $assignedStaff->id;
-                $order->save();
             }
+
+            // Auto-assign order to delivery agent using Round-Robin
+            $assignedAgent = app(\App\Services\DeliveryAssignmentService::class)->assignNextAgent();
+            if ($assignedAgent) {
+                $order->delivery_agent_id = $assignedAgent->id;
+            }
+
+            $order->save();
 
             // Save order items
             foreach ($itemsData as $item) {
@@ -212,9 +219,9 @@ class OrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Only allow cancel if status = 'pending'
-        if ($order->status !== 'pending') {
-            return back()->with('error', 'Only orders in pending status can be cancelled.');
+        // Only allow cancel if status = 'pending_pickup'
+        if ($order->status !== 'pending_pickup') {
+            return back()->with('error', 'Only orders in pending pickup status can be cancelled.');
         }
 
         $order->status = 'cancelled';

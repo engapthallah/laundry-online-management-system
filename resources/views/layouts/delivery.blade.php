@@ -194,20 +194,20 @@
                 <span>Dashboard</span>
             </a>
             
-            <a href="{{ route('delivery.deliveries.index') }}" class="sidebar-link {{ request()->routeIs('delivery.deliveries.index') && !request()->has('status') ? 'active' : '' }}">
+            <a href="{{ route('delivery.orders.index') }}" class="sidebar-link {{ request()->routeIs('delivery.orders.index') && !request()->has('status') ? 'active' : '' }}">
                 <i class="fa-solid fa-shipping-fast"></i>
                 <span>My Deliveries</span>
             </a>
             
-            <a href="{{ route('delivery.deliveries.index', ['status' => 'active']) }}" class="sidebar-link {{ request()->routeIs('delivery.deliveries.index') && request()->get('status') === 'active' ? 'active' : '' }}">
+            <a href="{{ route('delivery.orders.index', ['status' => 'active']) }}" class="sidebar-link {{ request()->routeIs('delivery.orders.index') && request()->get('status') === 'active' ? 'active' : '' }}">
                 <i class="fa-solid fa-map-marker-alt"></i>
                 <span class="me-auto">Active Deliveries</span>
                 <span class="badge bg-white text-dark badge-count fw-bold">
-                    {{ Auth::user()->deliveryAssignments()->whereIn('status', ['assigned', 'picked_up', 'on_the_way'])->count() }}
+                    {{ Auth::user()->assignedDeliveryOrders()->whereIn('status', ['pending_pickup', 'picked_up_from_customer', 'ready_for_delivery', 'picked_up_from_laundry', 'on_the_way'])->count() }}
                 </span>
             </a>
 
-            <a href="{{ route('delivery.deliveries.index', ['status' => 'delivered']) }}" class="sidebar-link {{ request()->routeIs('delivery.deliveries.index') && request()->get('status') === 'delivered' ? 'active' : '' }}">
+            <a href="{{ route('delivery.orders.index', ['status' => 'delivered']) }}" class="sidebar-link {{ request()->routeIs('delivery.orders.index') && request()->get('status') === 'delivered' ? 'active' : '' }}">
                 <i class="fa-solid fa-check-double"></i>
                 <span>Completed</span>
             </a>
@@ -267,20 +267,20 @@
                     <span>Dashboard</span>
                 </a>
                 
-                <a href="{{ route('delivery.deliveries.index') }}" class="sidebar-link {{ request()->routeIs('delivery.deliveries.index') && !request()->has('status') ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
+                <a href="{{ route('delivery.orders.index') }}" class="sidebar-link {{ request()->routeIs('delivery.orders.index') && !request()->has('status') ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
                     <i class="fa-solid fa-shipping-fast"></i>
                     <span>My Deliveries</span>
                 </a>
                 
-                <a href="{{ route('delivery.deliveries.index', ['status' => 'active']) }}" class="sidebar-link {{ request()->routeIs('delivery.deliveries.index') && request()->get('status') === 'active' ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
+                <a href="{{ route('delivery.orders.index', ['status' => 'active']) }}" class="sidebar-link {{ request()->routeIs('delivery.orders.index') && request()->get('status') === 'active' ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
                     <i class="fa-solid fa-map-marker-alt"></i>
                     <span class="me-auto">Active Deliveries</span>
                     <span class="badge bg-white text-dark badge-count fw-bold">
-                        {{ Auth::user()->deliveryAssignments()->whereIn('status', ['assigned', 'picked_up', 'on_the_way'])->count() }}
+                        {{ Auth::user()->assignedDeliveryOrders()->whereIn('status', ['pending_pickup', 'picked_up_from_customer', 'ready_for_delivery', 'picked_up_from_laundry', 'on_the_way'])->count() }}
                     </span>
                 </a>
 
-                <a href="{{ route('delivery.deliveries.index', ['status' => 'delivered']) }}" class="sidebar-link {{ request()->routeIs('delivery.deliveries.index') && request()->get('status') === 'delivered' ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
+                <a href="{{ route('delivery.orders.index', ['status' => 'delivered']) }}" class="sidebar-link {{ request()->routeIs('delivery.orders.index') && request()->get('status') === 'delivered' ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
                     <i class="fa-solid fa-check-double"></i>
                     <span>Completed</span>
                 </a>
@@ -326,7 +326,7 @@
                 <h4 class="mb-0 fw-bold text-dark d-none d-sm-block">Delivery Panel</h4>
                 <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-semibold d-none d-md-inline-block">
                     <i class="fa-solid fa-truck-ramp-box me-1"></i> Today's Deliveries: 
-                    {{ Auth::user()->deliveryAssignments()->where('status', 'delivered')->whereDate('delivered_at', \Carbon\Carbon::today())->count() }}
+                    {{ Auth::user()->assignedDeliveryOrders()->where('status', 'delivered')->whereDate('delivery_time', \Carbon\Carbon::today())->count() }}
                 </span>
             </div>
             

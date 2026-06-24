@@ -23,7 +23,7 @@ class DashboardController extends Controller
         $totalOrders = Order::count();
         $totalRevenue = Payment::where('status', 'completed')->sum('amount');
         $activeCustomers = User::where('role', 'customer')->where('is_active', true)->count();
-        $pendingOrders = Order::where('status', 'pending')->count();
+        $confirmedOrders = Order::where('status', 'pending_pickup')->count();
 
         // Stats Cards - Row 2
         $ordersToday = Order::whereDate('created_at', Carbon::today())->count();
@@ -35,7 +35,17 @@ class DashboardController extends Controller
         $averageRating = round(Review::avg('rating') ?? 0.0, 1);
 
         // Chart 1: Orders by Status
-        $statuses = ['pending', 'confirmed', 'washing', 'drying', 'ironing', 'folding', 'ready_for_delivery', 'out_for_delivery', 'delivered', 'cancelled'];
+        $statuses = [
+            'pending_pickup',
+            'picked_up_from_customer',
+            'delivered_to_laundry',
+            'processing',
+            'ready_for_delivery',
+            'picked_up_from_laundry',
+            'on_the_way',
+            'delivered',
+            'cancelled'
+        ];
         $ordersByStatusData = [];
         foreach ($statuses as $status) {
             $ordersByStatusData[$status] = Order::where('status', $status)->count();
@@ -63,7 +73,7 @@ class DashboardController extends Controller
             'totalOrders',
             'totalRevenue',
             'activeCustomers',
-            'pendingOrders',
+            'confirmedOrders',
             'ordersToday',
             'revenueThisMonth',
             'openSupportMessages',

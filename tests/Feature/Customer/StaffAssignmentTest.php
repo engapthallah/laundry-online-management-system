@@ -129,10 +129,13 @@ class StaffAssignmentTest extends TestCase
      */
     public function test_order_placement_succeeds_even_if_no_active_staff_exists(): void
     {
-        // Mock Log to expect the warning, while ignoring other logs like errors
+        // Mock Log to expect the warnings, while ignoring other logs like errors
         Log::shouldReceive('warning')
-            ->once()
-            ->with('No active staff users available for round-robin assignment.');
+            ->with('No active staff users available for round-robin assignment.')
+            ->once();
+        Log::shouldReceive('warning')
+            ->with('LOMS: No active delivery agents available for assignment.')
+            ->once();
         Log::shouldReceive('error')->byDefault();
         Log::shouldReceive('info')->byDefault();
 

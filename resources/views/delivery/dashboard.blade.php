@@ -163,8 +163,8 @@
     <div class="col-12 col-xl-8">
         <div class="card border-0 shadow-sm rounded-3 bg-white p-4 h-100">
             <div class="d-flex align-items-center justify-content-between mb-4">
-                <h5 class="fw-bold text-dark mb-0">Recent Active Deliveries</h5>
-                <a href="{{ route('delivery.deliveries.index', ['status' => 'active']) }}" class="btn btn-sm btn-outline-primary fw-semibold">
+                <h5 class="fw-bold text-dark mb-0">Recent Active Orders</h5>
+                <a href="{{ route('delivery.orders.index') }}" class="btn btn-sm btn-outline-primary fw-semibold">
                     View All Active
                 </a>
             </div>
@@ -172,21 +172,23 @@
             @if($activeAssignments->isEmpty())
                 <div class="text-center py-5">
                     <i class="fa-solid fa-truck text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h6 class="text-secondary fw-semibold">No active deliveries currently on your list.</h6>
+                    <h6 class="text-secondary fw-semibold">No active orders currently on your list.</h6>
                 </div>
             @else
                 <div class="row g-3">
-                    @foreach($activeAssignments as $assignment)
+                    @foreach($activeAssignments as $order)
                         @php
                             $now = now();
-                            $deliveryTime = $assignment->order->delivery_time;
-                            $diffInMinutes = $deliveryTime ? $now->diffInMinutes($deliveryTime, false) : null;
+                            $targetTime = ($order->status === 'pending_pickup' || $order->status === 'picked_up_from_customer') 
+                                ? $order->pickup_time 
+                                : $order->delivery_time;
+                            $diffInMinutes = $targetTime ? $now->diffInMinutes($targetTime, false) : null;
                             
                             // Determine urgency border and indicator badge
-                            if ($deliveryTime && ($deliveryTime->isPast() || $diffInMinutes <= 60)) {
+                            if ($targetTime && ($targetTime->isPast() || $diffInMinutes <= 60)) {
                                 $borderClass = 'border border-danger border-2';
                                 $urgencyBadge = '<span class="badge bg-danger text-white pulse-badge"><i class="fa-solid fa-bell me-1"></i>Due under 1 hour</span>';
-                            } elseif ($deliveryTime && $diffInMinutes <= 180) {
+                            } elseif ($targetTime && $diffInMinutes <= 180) {
                                 $borderClass = 'border border-warning border-2';
                                 $urgencyBadge = '<span class="badge bg-warning text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Due under 3 hours</span>';
                             } else {
@@ -200,9 +202,9 @@
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="fw-bold text-primary fs-5">#{{ $assignment->order->order_number }}</span>
-                                            <span class="badge-delivery badge-delivery-{{ $assignment->status }}">
-                                                {{ str_replace('_', ' ', $assignment->status) }}
+                                            <span class="fw-bold text-primary fs-5">#{{ $order->order_number }}</span>
+                                            <span class="badge bg-secondary">
+                                                {{ str_replace('_', ' ', $order->status) }}
                                             </span>
                                         </div>
                                         
@@ -213,28 +215,28 @@
                                         @endif
 
                                         <p class="mb-1 text-dark">
-                                            <strong>Customer:</strong> {{ explode(' ', $assignment->order->customer->name)[0] }}
+                                            <strong>Customer:</strong> {{ explode(' ', $order->customer->name)[0] }}
                                         </p>
                                         <p class="mb-1 text-secondary small">
-                                            <strong>Address:</strong> {{ Str::limit($assignment->order->delivery_address, 60) }}
+                                            <strong>Address:</strong> {{ Str::limit(($order->status === 'pending_pickup' || $order->status === 'picked_up_from_customer') ? $order->pickup_address : $order->delivery_address, 60) }}
                                         </p>
                                         <p class="mb-1 text-secondary small">
-                                            <strong>Schedule:</strong> {{ $assignment->order->delivery_time ? $assignment->order->delivery_time->format('M d, Y h:i A') : 'N/A' }}
+                                            <strong>Target Time:</strong> {{ $targetTime ? $targetTime->format('M d, Y h:i A') : 'N/A' }}
                                         </p>
                                     </div>
                                     
                                     <div class="mt-3 pt-2 border-top border-light-subtle d-flex flex-column gap-2">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <span class="small text-secondary fw-semibold">
-                                                Total: ${{ number_format($assignment->order->total_price, 2) }}
+                                                Total: ${{ number_format($order->total_price, 2) }}
                                             </span>
-                                            @if($assignment->order->payment_method === 'cash')
+                                            @if($order->payment_method === 'cash')
                                                 <span class="badge bg-danger">Collect Cash</span>
                                             @else
                                                 <span class="badge bg-success">Paid</span>
                                             @endif
                                         </div>
-                                        <a href="{{ route('delivery.deliveries.show', $assignment) }}" class="btn btn-primary w-100 fw-bold py-2 mt-2">
+                                        <a href="{{ route('delivery.orders.show', $order) }}" class="btn btn-primary w-100 fw-bold py-2 mt-2">
                                             Update Status <i class="fa-solid fa-arrow-right ms-1"></i>
                                         </a>
                                     </div>
@@ -252,7 +254,7 @@
         <div class="card border-0 shadow-sm rounded-3 bg-white p-4 h-100 d-flex flex-column justify-content-between">
             <div>
                 <h5 class="fw-bold text-dark mb-1">Performance Summary</h5>
-                <p class="text-muted small mb-4">Breakdown of assignments by status this month.</p>
+                <p class="text-muted small mb-4">Breakdown of active/completed assignments this month.</p>
             </div>
             
             @if(!$hasData)
@@ -272,16 +274,24 @@
                     
                     <!-- Legends list with counts next to chart -->
                     <div class="w-100 border-top pt-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span><i class="fa-solid fa-circle text-warning me-2" style="font-size: 0.8rem;"></i>Assigned</span>
-                            <span class="fw-bold">{{ $chartData['assigned'] }}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fa-solid fa-circle text-secondary me-2" style="font-size: 0.8rem;"></i>Pending Pickup</span>
+                            <span class="fw-bold">{{ $chartData['pending_pickup'] }}</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span><i class="fa-solid fa-circle text-primary me-2" style="font-size: 0.8rem;"></i>Picked Up</span>
-                            <span class="fw-bold">{{ $chartData['picked_up'] }}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fa-solid fa-circle text-primary me-2" style="font-size: 0.8rem;"></i>Picked Up (Cust)</span>
+                            <span class="fw-bold">{{ $chartData['picked_up_from_customer'] }}</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span><i class="fa-solid fa-circle text-orange me-2" style="font-size: 0.8rem;"></i>On The Way</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fa-solid fa-circle text-info me-2" style="font-size: 0.8rem;"></i>Ready for Delivery</span>
+                            <span class="fw-bold">{{ $chartData['ready_for_delivery'] }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fa-solid fa-circle text-warning me-2" style="font-size: 0.8rem;"></i>Picked Up (Lndry)</span>
+                            <span class="fw-bold">{{ $chartData['picked_up_from_laundry'] }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fa-solid fa-circle text-dark me-2" style="font-size: 0.8rem;"></i>On The Way</span>
                             <span class="fw-bold">{{ $chartData['on_the_way'] }}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
@@ -304,13 +314,16 @@
             @if($todaysSchedule->isEmpty())
                 <div class="text-center py-4">
                     <i class="fa-regular fa-calendar-xmark text-muted mb-2 fs-2"></i>
-                    <p class="text-secondary mb-0">No deliveries are scheduled/assigned for today.</p>
+                    <p class="text-secondary mb-0">No orders are scheduled/assigned for today.</p>
                 </div>
             @else
                 <div class="timeline-schedule">
-                    @foreach($todaysSchedule as $assignment)
+                    @foreach($todaysSchedule as $order)
                         @php
-                            $isDelivered = ($assignment->status === 'delivered');
+                            $isDelivered = ($order->status === 'delivered');
+                            $timeDisplay = ($order->status === 'pending_pickup' || $order->status === 'picked_up_from_customer') 
+                                ? $order->pickup_time 
+                                : $order->delivery_time;
                         @endphp
                         <div class="timeline-schedule-item d-flex flex-wrap align-items-start {{ $isDelivered ? 'completed' : '' }}">
                             <div class="timeline-schedule-marker"></div>
@@ -320,25 +333,25 @@
                                 <div class="col-12 col-md-3">
                                     <div class="fw-bold text-dark">
                                         <i class="fa-regular fa-clock me-1 text-muted"></i>
-                                        {{ $assignment->order->delivery_time ? $assignment->order->delivery_time->format('h:i A') : 'N/A' }}
+                                        {{ $timeDisplay ? $timeDisplay->format('h:i A') : 'N/A' }}
                                     </div>
-                                    <span class="badge-delivery badge-delivery-{{ $assignment->status }} mt-1">
-                                        {{ str_replace('_', ' ', $assignment->status) }}
+                                    <span class="badge bg-secondary mt-1">
+                                        {{ str_replace('_', ' ', $order->status) }}
                                     </span>
                                 </div>
                                 <div class="col-12 col-md-3">
-                                    <span class="fw-bold text-primary">#{{ $assignment->order->order_number }}</span>
+                                    <span class="fw-bold text-primary">#{{ $order->order_number }}</span>
                                     <div class="small text-secondary mt-1">
-                                        Customer: <strong>{{ explode(' ', $assignment->order->customer->name)[0] }}</strong>
+                                        Customer: <strong>{{ explode(' ', $order->customer->name)[0] }}</strong>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4 text-muted small text-truncate-custom">
                                     <i class="fa-solid fa-map-marker-alt text-danger me-1"></i>
-                                    {{ $assignment->order->delivery_address }}
+                                    {{ ($order->status === 'pending_pickup' || $order->status === 'picked_up_from_customer') ? $order->pickup_address : $order->delivery_address }}
                                 </div>
                                 <div class="col-12 col-md-2 text-md-end">
-                                    <a href="{{ route('delivery.deliveries.show', $assignment) }}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
-                                        Open Assignment
+                                    <a href="{{ route('delivery.orders.show', $order) }}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                                        Open Order
                                     </a>
                                 </div>
                             </div>
@@ -361,14 +374,16 @@
         const performanceChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Assigned', 'Picked Up', 'On The Way', 'Delivered'],
+                labels: ['Pending Pickup', 'Picked Up (Cust)', 'Ready for Delivery', 'Picked Up (Lndry)', 'On The Way', 'Delivered'],
                 datasets: [{
                     data: chartData,
                     backgroundColor: [
-                        '#ffc107', // Assigned (warning)
-                        '#0d6efd', // Picked Up (primary)
-                        '#fd7e14', // On The Way (orange)
-                        '#198754'  // Delivered (success)
+                        '#6c757d', // Pending Pickup
+                        '#0d6efd', // Picked Up (Cust)
+                        '#20c997', // Ready for Delivery
+                        '#ffc107', // Picked Up (Lndry)
+                        '#212529', // On The Way
+                        '#198754'  // Delivered
                     ],
                     borderWidth: 2,
                     borderColor: '#ffffff'

@@ -76,7 +76,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'status' => [
                 'required',
-                'in:pending,confirmed,washing,drying,ironing,folding,ready_for_delivery,out_for_delivery,delivered,cancelled'
+                'in:confirmed,processing,ready_for_delivery,out_for_delivery,delivered,cancelled'
             ],
         ]);
 

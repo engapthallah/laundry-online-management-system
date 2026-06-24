@@ -112,29 +112,32 @@
                                     </td>
                                     <td>
                                         @switch($order->status)
-                                            @case('pending')
-                                                <span class="badge bg-warning text-dark text-capitalize">{{ $order->status }}</span>
+                                            @case('pending_pickup')
+                                                <span class="badge bg-secondary">Pending Pickup</span>
                                                 @break
-                                            @case('confirmed')
-                                                <span class="badge bg-primary text-capitalize">{{ $order->status }}</span>
+                                            @case('picked_up_from_customer')
+                                                <span class="badge bg-primary">Picked Up</span>
                                                 @break
-                                            @case('washing')
-                                            @case('drying')
-                                            @case('ironing')
-                                            @case('folding')
-                                                <span class="badge bg-info text-dark text-capitalize">{{ $order->status }}</span>
+                                            @case('delivered_to_laundry')
+                                                <span class="badge bg-info text-dark">At Laundry</span>
+                                                @break
+                                            @case('processing')
+                                                <span class="badge bg-warning text-dark">Processing</span>
                                                 @break
                                             @case('ready_for_delivery')
-                                                <span class="badge bg-teal text-white text-capitalize">Ready</span>
+                                                <span class="badge bg-teal">Ready for Delivery</span>
                                                 @break
-                                            @case('out_for_delivery')
-                                                <span class="badge bg-orange text-white text-capitalize">Out</span>
+                                            @case('picked_up_from_laundry')
+                                                <span class="badge bg-primary">Picked Up from Laundry</span>
+                                                @break
+                                            @case('on_the_way')
+                                                <span class="badge bg-dark">On the Way</span>
                                                 @break
                                             @case('delivered')
-                                                <span class="badge bg-success text-capitalize">{{ $order->status }}</span>
+                                                <span class="badge bg-success">Delivered</span>
                                                 @break
                                             @case('cancelled')
-                                                <span class="badge bg-danger text-capitalize">{{ $order->status }}</span>
+                                                <span class="badge bg-danger">Cancelled</span>
                                                 @break
                                         @endswitch
                                     </td>

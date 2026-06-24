@@ -22,7 +22,7 @@ class ReviewFlowTest extends TestCase
     public function test_review_can_only_be_submitted_for_delivered_order()
     {
         $customer = $this->createCustomer();
-        $order = $this->createOrder($customer, ['status' => 'pending']);
+        $order = $this->createOrder($customer, ['status' => 'confirmed']);
 
         $response = $this->actingAs($customer)->post('/customer/reviews', [
             'order_id' => $order->id,

@@ -68,7 +68,7 @@ class PaymentFlowTest extends TestCase
         $admin = $this->createAdmin();
         $customer = $this->createCustomer();
         $order = $this->createOrder($customer, [
-            'status' => 'folding', // NOT delivered
+            'status' => 'processing', // NOT delivered
             'payment_status' => 'paid',
         ]);
         

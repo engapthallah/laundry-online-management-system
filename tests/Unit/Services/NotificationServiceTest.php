@@ -78,13 +78,13 @@ class NotificationServiceTest extends TestCase
         $customer = $this->createCustomer();
         $order = $this->createOrder($customer);
 
-        NotificationService::orderStatusUpdated($order, 'washing');
+        NotificationService::orderStatusUpdated($order, 'processing');
 
         $notification = Notification::where('user_id', $customer->id)
             ->where('order_id', $order->id)
             ->first();
 
         $this->assertNotNull($notification);
-        $this->assertStringContainsString('washed', $notification->message);
+        $this->assertStringContainsString('cleaning', $notification->message);
     }
 }

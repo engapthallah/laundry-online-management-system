@@ -148,14 +148,17 @@
                                         @php
                                             $status = $payment->order->status ?? '';
                                             $badgeClass = 'bg-secondary';
-                                            if (in_array($status, ['pending', 'confirmed'])) $badgeClass = 'bg-warning text-dark';
-                                            elseif (in_array($status, ['washing', 'drying', 'ironing', 'folding'])) $badgeClass = 'bg-primary';
-                                            elseif ($status === 'ready_for_delivery') $badgeClass = 'bg-info text-dark';
-                                            elseif ($status === 'out_for_delivery') $badgeClass = 'bg-info';
+                                            if ($status === 'pending_pickup') $badgeClass = 'bg-secondary';
+                                            elseif ($status === 'picked_up_from_customer') $badgeClass = 'bg-primary';
+                                            elseif ($status === 'delivered_to_laundry') $badgeClass = 'bg-info text-dark';
+                                            elseif ($status === 'processing') $badgeClass = 'bg-warning text-dark';
+                                            elseif ($status === 'ready_for_delivery') $badgeClass = 'bg-teal';
+                                            elseif ($status === 'picked_up_from_laundry') $badgeClass = 'bg-primary';
+                                            elseif ($status === 'on_the_way') $badgeClass = 'bg-dark';
                                             elseif ($status === 'delivered') $badgeClass = 'bg-success';
                                             elseif ($status === 'cancelled') $badgeClass = 'bg-danger';
                                         @endphp
-                                        <span class="badge {{ $badgeClass }} text-capitalize px-2.5 py-1">{{ $status }}</span>
+                                        <span class="badge {{ $badgeClass }} text-capitalize px-2.5 py-1">{{ str_replace('_', ' ', $status) }}</span>
                                     </td>
                                 </tr>
                                 <tr>

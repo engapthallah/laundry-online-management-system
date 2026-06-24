@@ -45,14 +45,9 @@ class NotificationController extends Controller
         $notification->is_read = true;
         $notification->save();
 
-        if ($notification->order_id) {
-            // Find delivery assignment for this order and agent to redirect correctly
-            $assignment = DeliveryAssignment::where('order_id', $notification->order_id)
-                ->where('delivery_agent_id', Auth::id())
-                ->first();
-
-            if ($assignment) {
-                return redirect()->route('delivery.deliveries.show', $assignment->id);
+        if ($notification->order_id && $notification->order) {
+            if ($notification->order->delivery_agent_id === Auth::id()) {
+                return redirect()->route('delivery.orders.show', $notification->order_id);
             }
         }
 

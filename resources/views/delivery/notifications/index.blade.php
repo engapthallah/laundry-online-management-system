@@ -102,13 +102,8 @@
                                     <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
                                         <div>
                                             @if($notification->order_id && $notification->order)
-                                                @php
-                                                    $assignment = \App\Models\DeliveryAssignment::where('order_id', $notification->order_id)
-                                                        ->where('delivery_agent_id', Auth::id())
-                                                        ->first();
-                                                @endphp
-                                                @if($assignment)
-                                                    <a href="{{ route('delivery.deliveries.show', $assignment->id) }}" class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle px-2.5 py-1.5 fs-8">
+                                                @if($notification->order->delivery_agent_id === Auth::id())
+                                                    <a href="{{ route('delivery.orders.show', $notification->order_id) }}" class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle px-2.5 py-1.5 fs-8">
                                                         <i class="fa-solid fa-hashtag me-1"></i>{{ $notification->order->order_number }}
                                                     </a>
                                                 @else

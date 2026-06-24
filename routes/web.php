@@ -181,6 +181,11 @@ Route::middleware(['auth', 'delivery'])
         Route::get('/deliveries/{assignment}', [App\Http\Controllers\Delivery\DeliveryController::class, 'show'])->name('deliveries.show');
         Route::patch('/deliveries/{assignment}/status', [App\Http\Controllers\Delivery\DeliveryController::class, 'updateStatus'])->name('deliveries.updateStatus');
 
+        // Orders (New Pickup & Delivery Workflow)
+        Route::get('/orders', [\App\Http\Controllers\Delivery\OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [\App\Http\Controllers\Delivery\OrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [\App\Http\Controllers\Delivery\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
         // Notifications
         Route::get('/notifications', [\App\Http\Controllers\Delivery\NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [\App\Http\Controllers\Delivery\NotificationController::class, 'markRead'])->name('notifications.markRead');

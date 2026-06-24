@@ -54,7 +54,7 @@ class OrderPlacementTest extends TestCase
 
         $order = Order::latest()->first();
         $this->assertNotNull($order);
-        $this->assertEquals('pending', $order->status);
+        $this->assertEquals('pending_pickup', $order->status);
         
         $payment = Payment::where('order_id', $order->id)->first();
         $this->assertNotNull($payment);
@@ -236,10 +236,10 @@ class OrderPlacementTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_customer_can_cancel_pending_order()
+    public function test_customer_can_cancel_confirmed_order()
     {
         $customer = $this->createCustomer();
-        $order = $this->createOrder($customer, ['status' => 'pending']);
+        $order = $this->createOrder($customer, ['status' => 'pending_pickup']);
 
         $response = $this->actingAs($customer)->post("/customer/orders/{$order->id}/cancel");
 
@@ -247,10 +247,10 @@ class OrderPlacementTest extends TestCase
         $response->assertRedirect(route('customer.orders.show', $order->id));
     }
 
-    public function test_customer_cannot_cancel_non_pending_order()
+    public function test_customer_cannot_cancel_non_confirmed_order()
     {
         $customer = $this->createCustomer();
-        $order = $this->createOrder($customer, ['status' => 'washing']);
+        $order = $this->createOrder($customer, ['status' => 'processing']);
 
         $response = $this->actingAs($customer)->post("/customer/orders/{$order->id}/cancel");
 
