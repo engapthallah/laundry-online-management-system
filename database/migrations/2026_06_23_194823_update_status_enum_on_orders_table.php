@@ -14,6 +14,27 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::getDriverName() !== 'sqlite') {
+            // Convert old statuses first
+            DB::table('orders')
+                ->where('status', 'pending')
+                ->update(['status' => 'confirmed']);
+
+            DB::table('orders')
+                ->where('status', 'washing')
+                ->update(['status' => 'processing']);
+
+            DB::table('orders')
+                ->where('status', 'drying')
+                ->update(['status' => 'processing']);
+
+            DB::table('orders')
+                ->where('status', 'ironing')
+                ->update(['status' => 'processing']);
+
+            DB::table('orders')
+                ->where('status', 'folding')
+                ->update(['status' => 'processing']);
+
             DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM(
                 'confirmed',
                 'processing',
