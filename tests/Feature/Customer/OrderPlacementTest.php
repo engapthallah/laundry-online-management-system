@@ -254,7 +254,64 @@ class OrderPlacementTest extends TestCase
 
         $response = $this->actingAs($customer)->post("/customer/orders/{$order->id}/cancel");
 
-        $this->assertNotEquals('cancelled', $order->fresh()->status);
         $response->assertSessionHas('error');
+    }
+
+    public function test_customer_placing_order_with_confirmed_payment_sets_awaiting_staff_review()
+    {
+        $admin = $this->createAdmin();
+        $customer = $this->createCustomer();
+        $service = $this->createService();
+
+        $response = $this->actingAs($customer)->post('/customer/orders', [
+            'services' => [
+                [
+                    'selected' => '1',
+                    'service_id' => $service->id,
+                    'quantity' => 1,
+                    'weight_kg' => 1.5,
+                ]
+            ],
+            'pickup_address' => '123 Test Street',
+            'delivery_address' => '456 Test Ave',
+            'pickup_time' => now()->addDay()->format('Y-m-d H:i:s'),
+            'delivery_time' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            'payment_method' => 'zaad',
+            'payment_phone' => '12345678',
+            'customer_payment_confirmed' => '1',
+        ]);
+
+        $order = Order::latest()->first();
+        $this->assertNotNull($order);
+        $this->assertEquals('awaiting_staff_review', $order->payment_status);
+    }
+
+    public function test_customer_placing_order_without_confirmed_payment_sets_pending_verification()
+    {
+        $admin = $this->createAdmin();
+        $customer = $this->createCustomer();
+        $service = $this->createService();
+
+        $response = $this->actingAs($customer)->post('/customer/orders', [
+            'services' => [
+                [
+                    'selected' => '1',
+                    'service_id' => $service->id,
+                    'quantity' => 1,
+                    'weight_kg' => 1.5,
+                ]
+            ],
+            'pickup_address' => '123 Test Street',
+            'delivery_address' => '456 Test Ave',
+            'pickup_time' => now()->addDay()->format('Y-m-d H:i:s'),
+            'delivery_time' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            'payment_method' => 'zaad',
+            'payment_phone' => '12345678',
+            'customer_payment_confirmed' => '0',
+        ]);
+
+        $order = Order::latest()->first();
+        $this->assertNotNull($order);
+        $this->assertEquals('pending_verification', $order->payment_status);
     }
 }

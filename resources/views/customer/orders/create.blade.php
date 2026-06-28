@@ -1,6 +1,30 @@
 @extends('layouts.customer-portal')
 
 @section('content')
+@vite('resources/css/customer-order.css')
+
+@php
+    $getIcon = function($name) {
+        $name = strtolower($name);
+        if (str_contains($name, 'shirt') || str_contains($name, 'suit') || str_contains($name, 'dress') || str_contains($name, 'coat')) {
+            return 'fa-shirt';
+        }
+        if (str_contains($name, 'blanket') || str_contains($name, 'duvet') || str_contains($name, 'bed') || str_contains($name, 'sheet')) {
+            return 'fa-mattress-pillow';
+        }
+        if (str_contains($name, 'dry') || str_contains($name, 'wash')) {
+            return 'fa-soap';
+        }
+        if (str_contains($name, 'shoe') || str_contains($name, 'leather')) {
+            return 'fa-shoe-prints';
+        }
+        if (str_contains($name, 'iron') || str_contains($name, 'press')) {
+            return 'fa-person-ironing';
+        }
+        return 'fa-hands-wash';
+    };
+@endphp
+
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
     <h1 class="h2 fw-bold text-dark">Place New Order</h1>
     <a href="{{ route('customer.dashboard') }}" class="btn btn-outline-secondary fw-semibold">
@@ -11,22 +35,44 @@
 <!-- Step Wizard Indicators -->
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
     <div class="card-body p-4">
-        <div class="row text-center g-2">
-            <div class="col-3 step-indicator text-primary fw-bold" id="indicator-1">
-                <span class="badge bg-primary rounded-circle px-2.5 py-2 fs-6 mb-1">1</span>
-                <div class="small d-none d-sm-block">Select Services</div>
+        <!-- Progress bar info -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-bold text-dark fs-5">Order Progress</span>
+            <span id="wizardProgressText" class="badge bg-primary px-3 py-2 rounded-pill fw-semibold">Step 1 of 4 (0% Complete)</span>
+        </div>
+        <div class="progress wizard-progress-bar mb-4">
+            <div id="wizardProgressFill" class="progress-bar wizard-progress-fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        
+        <!-- Step Indicators -->
+        <div class="step-indicator-wrapper">
+            <div class="step-indicator-item active" id="indicator-1">
+                <div class="step-icon-circle">
+                    <span class="step-num">1</span>
+                    <i class="fa-solid fa-check d-none"></i>
+                </div>
+                <div class="step-label">Select Services</div>
             </div>
-            <div class="col-3 step-indicator text-muted" id="indicator-2">
-                <span class="badge bg-secondary rounded-circle px-2.5 py-2 fs-6 mb-1">2</span>
-                <div class="small d-none d-sm-block">Schedule Pickup</div>
+            <div class="step-indicator-item" id="indicator-2">
+                <div class="step-icon-circle">
+                    <span class="step-num">2</span>
+                    <i class="fa-solid fa-check d-none"></i>
+                </div>
+                <div class="step-label">Schedule Pickup</div>
             </div>
-            <div class="col-3 step-indicator text-muted" id="indicator-3">
-                <span class="badge bg-secondary rounded-circle px-2.5 py-2 fs-6 mb-1">3</span>
-                <div class="small d-none d-sm-block">Payment Method</div>
+            <div class="step-indicator-item" id="indicator-3">
+                <div class="step-icon-circle">
+                    <span class="step-num">3</span>
+                    <i class="fa-solid fa-check d-none"></i>
+                </div>
+                <div class="step-label">Payment Method</div>
             </div>
-            <div class="col-3 step-indicator text-muted" id="indicator-4">
-                <span class="badge bg-secondary rounded-circle px-2.5 py-2 fs-6 mb-1">4</span>
-                <div class="small d-none d-sm-block">Confirmation</div>
+            <div class="step-indicator-item" id="indicator-4">
+                <div class="step-icon-circle">
+                    <span class="step-num">4</span>
+                    <i class="fa-solid fa-check d-none"></i>
+                </div>
+                <div class="step-label">Confirmation</div>
             </div>
         </div>
     </div>
@@ -47,19 +93,22 @@
                     <div class="alert alert-danger mb-4">{{ $errors->first('services') }}</div>
                 @endif
 
-                <div class="row g-4">
+                <div class="row g-3">
                     @foreach($services as $service)
-                        <div class="col-12">
-                            <div class="card border border-2 rounded-4 service-card service-item transition-all" id="card-{{ $service->id }}"
+                        <div class="col-12 col-md-6 col-lg-6">
+                            <div class="card service-card h-100" id="card-{{ $service->id }}"
                                  data-service-id="{{ $service->id }}"
                                  data-service-name="{{ $service->name }}"
                                  data-price-per-item="{{ $service->price_per_item }}"
                                  data-price-per-kg="{{ $service->price_per_kg }}">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-start gap-3">
-                                        <!-- Selection Checkbox -->
-                                        <div class="form-check m-0 pt-1">
-                                            <input class="form-check-input service-checkbox fs-4" type="checkbox" 
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <!-- Header Section: Icon & Checkbox -->
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="service-icon-box">
+                                            <i class="fa-solid {{ $getIcon($service->name) }}"></i>
+                                        </div>
+                                        <div class="form-check m-0">
+                                            <input class="form-check-input service-checkbox fs-4 cursor-pointer" type="checkbox" 
                                                    name="services[{{ $loop->index }}][selected]" 
                                                    value="1" 
                                                    id="check-{{ $service->id }}"
@@ -69,51 +118,56 @@
                                                    data-price-kg="{{ $service->price_per_kg }}">
                                             <input type="hidden" name="services[{{ $loop->index }}][service_id]" value="{{ $service->id }}">
                                         </div>
+                                    </div>
+                                    
+                                    <!-- Service Name & Description -->
+                                    <h5 class="fw-bold text-dark mb-1">{{ $service->name }}</h5>
+                                    <p class="text-secondary small flex-grow-1 mb-3">{{ $service->description }}</p>
+                                    
+                                    <!-- Pricing Badges -->
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        @if($service->price_per_kg > 0)
+                                            <span class="badge bg-light text-primary border border-primary-subtle px-2.5 py-1.5 fs-7">
+                                                <i class="fa-solid fa-weight-scale me-1"></i> ${{ number_format($service->price_per_kg, 2) }}/kg
+                                            </span>
+                                        @endif
+                                        @if($service->price_per_item > 0)
+                                            <span class="badge bg-light text-success border border-success-subtle px-2.5 py-1.5 fs-7">
+                                                <i class="fa-solid fa-shirt me-1"></i> ${{ number_format($service->price_per_item, 2) }}/item
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Dynamic Inputs Container (Hidden by default) -->
+                                    <div class="row g-2 mt-auto d-none" id="inputs-{{ $service->id }}">
+                                        <!-- Quantity -->
+                                        <div class="col-6">
+                                            <label class="form-label fw-semibold small text-muted mb-1">Quantity</label>
+                                            <input type="number" name="services[{{ $loop->index }}][quantity]" value="1" min="1" 
+                                                   class="form-control qty-input service-qty" data-service-id="{{ $service->id }}">
+                                        </div>
                                         
-                                        <!-- Service Info -->
-                                        <div class="flex-grow-1">
-                                            <label for="check-{{ $service->id }}" class="fw-bold text-dark fs-5 cursor-pointer d-block">{{ $service->name }}</label>
-                                            <p class="text-secondary small mb-3">{{ $service->description }}</p>
-                                            
-                                            <!-- Pricing details -->
-                                            <div class="d-flex gap-3 text-muted small mb-3">
-                                                @if($service->price_per_kg > 0)
-                                                    <span><i class="fa-solid fa-weight-scale me-1 text-primary"></i> ${{ number_format($service->price_per_kg, 2) }}/kg</span>
-                                                @endif
-                                                @if($service->price_per_item > 0)
-                                                    <span><i class="fa-solid fa-shirt me-1 text-primary"></i> ${{ number_format($service->price_per_item, 2) }}/item</span>
-                                                @endif
+                                        <!-- Weight (KG) -->
+                                        @if($service->price_per_kg > 0)
+                                            <div class="col-6">
+                                                <label class="form-label fw-semibold small text-muted mb-1">Weight (KG)</label>
+                                                <input type="number" step="0.01" min="0.1" name="services[{{ $loop->index }}][weight_kg]" 
+                                                       class="form-control weight-input service-weight" placeholder="Optional" data-service-id="{{ $service->id }}">
                                             </div>
+                                        @endif
 
-                                            <!-- Dynamic inputs (Hidden until checked) -->
-                                            <div class="row g-3 d-none" id="inputs-{{ $service->id }}">
-                                                <!-- Quantity Input -->
-                                                <div class="col-12 col-sm-4">
-                                                    <label class="form-label fw-semibold small text-muted">Quantity</label>
-                                                    <input type="number" name="services[{{ $loop->index }}][quantity]" value="1" min="1" class="form-control qty-input service-qty" data-service-id="{{ $service->id }}">
-                                                </div>
-                                                
-                                                <!-- Weight Input -->
-                                                @if($service->price_per_kg > 0)
-                                                    <div class="col-12 col-sm-4">
-                                                        <label class="form-label fw-semibold small text-muted">Weight (KG)</label>
-                                                        <input type="number" step="0.01" min="0.1" name="services[{{ $loop->index }}][weight_kg]" class="form-control weight-input service-weight" placeholder="Optional" data-service-id="{{ $service->id }}">
-                                                    </div>
-                                                @endif
-
-                                                <!-- Care Instructions -->
-                                                <div class="col-12 col-sm-12">
-                                                    <label class="form-label fw-semibold small text-muted">Care Instructions / Notes</label>
-                                                    <input type="text" name="services[{{ $loop->index }}][care_instructions]" class="form-control notes-input" placeholder="e.g. Wash cold, hang dry">
-                                                </div>
-                                            </div>
+                                        <!-- Special instructions -->
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label fw-semibold small text-muted mb-1">Care Instructions</label>
+                                            <input type="text" name="services[{{ $loop->index }}][care_instructions]" 
+                                                   class="form-control notes-input" placeholder="e.g. cold wash, hang dry">
                                         </div>
-
-                                        <!-- Subtotal for this service -->
-                                        <div class="text-end d-none" id="subtotal-container-{{ $service->id }}">
-                                            <span class="text-muted small d-block">Subtotal</span>
-                                            <span class="fs-4 fw-bold text-primary service-subtotal" id="subtotal-val-{{ $service->id }}">$0.00</span>
-                                        </div>
+                                    </div>
+                                    
+                                    <!-- Subtotal (Hidden by default) -->
+                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top d-none" id="subtotal-container-{{ $service->id }}">
+                                        <span class="text-secondary small fw-medium">Subtotal:</span>
+                                        <span class="fs-5 fw-bold text-primary service-subtotal" id="subtotal-val-{{ $service->id }}">$0.00</span>
                                     </div>
                                 </div>
                             </div>
@@ -129,7 +183,7 @@
                 <div class="row g-4">
                     <!-- Pickup Address -->
                     <div class="col-12">
-                        <label for="pickup_address" class="form-label fw-semibold">Pickup Address</label>
+                        <label for="pickup_address" class="form-label fw-semibold">Pickup Address <span class="text-danger">*</span></label>
                         <textarea name="pickup_address" id="pickup_address" rows="3" class="form-control @error('pickup_address') is-invalid @enderror" required>{{ old('pickup_address', $user->address) }}</textarea>
                         @error('pickup_address')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -138,7 +192,7 @@
 
                     <!-- Delivery Address -->
                     <div class="col-12">
-                        <label for="delivery_address" class="form-label fw-semibold">Delivery Address</label>
+                        <label for="delivery_address" class="form-label fw-semibold">Delivery Address <span class="text-danger">*</span></label>
                         <textarea name="delivery_address" id="delivery_address" rows="3" class="form-control @error('delivery_address') is-invalid @enderror" required>{{ old('delivery_address', $user->address) }}</textarea>
                         @error('delivery_address')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -147,7 +201,7 @@
 
                     <!-- Pickup Time -->
                     <div class="col-12 col-md-6">
-                        <label for="pickup_time" class="form-label fw-semibold">Preferred Pickup Time</label>
+                        <label for="pickup_time" class="form-label fw-semibold">Preferred Pickup Time <span class="text-danger">*</span></label>
                         <input type="datetime-local" name="pickup_time" id="pickup_time" class="form-control @error('pickup_time') is-invalid @enderror" required>
                         @error('pickup_time')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -156,7 +210,7 @@
 
                     <!-- Delivery Time -->
                     <div class="col-12 col-md-6">
-                        <label for="delivery_time" class="form-label fw-semibold">Preferred Delivery Time</label>
+                        <label for="delivery_time" class="form-label fw-semibold">Preferred Delivery Time <span class="text-danger">*</span></label>
                         <input type="datetime-local" name="delivery_time" id="delivery_time" class="form-control @error('delivery_time') is-invalid @enderror" required>
                         @error('delivery_time')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -181,73 +235,79 @@
                 <div class="row g-3 mb-4">
                     <!-- Cash on Delivery -->
                     <div class="col-12">
-                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all active border-primary bg-primary-subtle" id="pay-card-cash" data-label="Cash on Delivery">
-                            <div class="card-body p-4 d-flex align-items-center gap-3">
-                                <input class="form-check-input payment-radio fs-4" type="radio" name="payment_method" id="pay-cash" value="cash" checked>
-                                <div class="fs-2 text-primary"><i class="fa-solid fa-money-bill-wave"></i></div>
-                                <div>
-                                    <label class="fw-bold text-dark fs-5 mb-0 cursor-pointer d-block" for="pay-cash">Cash on Delivery</label>
-                                    <small class="text-secondary">Pay when your laundry is delivered</small>
+                        <div class="card border-2 rounded-4 payment-option-card cursor-pointer transition-all selected" id="pay-card-cash" data-label="Cash on Delivery" data-payment="cash">
+                            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-2 text-primary"><i class="fa-solid fa-money-bill-wave"></i></div>
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-1">Cash on Delivery</h5>
+                                        <p class="text-secondary mb-0 small">Pay when your laundry is delivered</p>
+                                    </div>
                                 </div>
+                                <input class="form-check-input payment-radio fs-4 cursor-pointer" type="radio" name="payment_method" id="pay-cash" value="cash" checked>
                             </div>
                         </div>
                     </div>
 
                     <!-- Zaad Mobile Money -->
                     <div class="col-12">
-                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all" id="pay-card-zaad" data-label="ZAAD">
-                            <div class="card-body p-4 d-flex align-items-center gap-3">
-                                <input class="form-check-input payment-radio fs-4" type="radio" name="payment_method" id="pay-zaad" value="zaad">
-                                <div class="fs-2 text-primary"><i class="fa-solid fa-mobile-screen-button"></i></div>
-                                <div>
-                                    <label class="fw-bold text-dark fs-5 mb-0 cursor-pointer d-block" for="pay-zaad">Zaad Mobile Money</label>
-                                    <small class="text-secondary">Pay via Zaad mobile transfer</small>
+                        <div class="card border-2 rounded-4 payment-option-card cursor-pointer transition-all" id="pay-card-zaad" data-label="ZAAD" data-payment="zaad">
+                            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-2 text-primary"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-1">Zaad Mobile Money</h5>
+                                        <p class="text-secondary mb-0 small">Pay via Zaad mobile transfer</p>
+                                    </div>
                                 </div>
+                                <input class="form-check-input payment-radio fs-4 cursor-pointer" type="radio" name="payment_method" id="pay-zaad" value="zaad">
                             </div>
                         </div>
                     </div>
 
                     <!-- Edahab Mobile Money -->
                     <div class="col-12">
-                        <div class="card border border-2 rounded-4 payment-card cursor-pointer transition-all" id="pay-card-edahab" data-label="EDAHAB">
-                            <div class="card-body p-4 d-flex align-items-center gap-3">
-                                <input class="form-check-input payment-radio fs-4" type="radio" name="payment_method" id="pay-edahab" value="edahab">
-                                <div class="fs-2 text-primary"><i class="fa-solid fa-mobile-screen-button"></i></div>
-                                <div>
-                                    <label class="fw-bold text-dark fs-5 mb-0 cursor-pointer d-block" for="pay-edahab">Edahab Mobile Money</label>
-                                    <small class="text-secondary">Pay via Edahab mobile transfer</small>
+                        <div class="card border-2 rounded-4 payment-option-card cursor-pointer transition-all" id="pay-card-edahab" data-label="EDAHAB" data-payment="edahab">
+                            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-2 text-primary"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-1">Edahab Mobile Money</h5>
+                                        <p class="text-secondary mb-0 small">Pay via Edahab mobile transfer</p>
+                                    </div>
                                 </div>
+                                <input class="form-check-input payment-radio fs-4 cursor-pointer" type="radio" name="payment_method" id="pay-edahab" value="edahab">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Payment phone container -->
+                <!-- Hidden inputs for mobile numbers (needed for form request validation) -->
                 <div class="mb-3 d-none" id="phone-input-container">
                     <label for="payment_phone" class="form-label fw-bold">Mobile Wallet Phone Number</label>
-                    <input type="text" name="payment_phone" id="payment_phone" class="form-control" placeholder="e.g. +25261XXXXXX">
-                    <div class="form-text text-muted small">Enter the registered phone number to receive a payment prompt.</div>
+                    <input type="text" name="payment_phone" id="payment_phone" class="form-control">
                 </div>
 
                 <!-- Sub-step A — Show merchant number -->
-                <div id="mobilePayInstructions" style="display:none;" class="alert alert-info mt-3">
-                    <p class="fw-semibold mb-1">Transfer to this Merchant Number:</p>
-                    <p class="fs-5 fw-bold text-primary" id="merchantNumberDisplay"></p>
-                    <p class="small text-muted mb-0">After transferring, fill in your details below.</p>
+                <div id="mobilePayInstructions" style="display:none;" class="alert alert-info border-0 rounded-4 p-4 mt-3">
+                    <h6 class="fw-bold text-info-emphasis mb-2"><i class="fa-solid fa-circle-info me-2"></i>Payment Instructions:</h6>
+                    <p class="mb-2">Transfer to this Merchant Number:</p>
+                    <div class="fs-4 fw-bold text-primary mb-3 bg-white d-inline-block px-3 py-2 rounded-3 border" id="merchantNumberDisplay"></div>
+                    <p class="small text-muted mb-0">After completing the transfer, please fill in the proof of payment details below.</p>
                 </div>
 
-                <!-- Sub-step B — Customer proof fields (shown after merchant number) -->
-                <div id="mobilePayProofFields" style="display:none;" class="mt-3">
-                    <div class="mb-3">
-                        <label class="form-label">Your Wallet Phone Number <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="walletPhoneInput"
-                               placeholder="e.g. +25261XXXXXXX">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Sender Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="senderNameInput"
-                               placeholder="Name shown on the transfer receipt">
-                        <div class="form-text">Enter the name that appears on your mobile money transfer.</div>
+                <!-- Sub-step B — Customer proof fields -->
+                <div id="mobilePayProofFields" style="display:none;" class="card border-0 bg-light rounded-4 p-4 mt-3">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>Proof of Payment</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Your Wallet Phone Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="walletPhoneInput" placeholder="e.g. +25261XXXXXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Sender Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="senderNameInput" placeholder="Name shown on transfer receipt">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -255,81 +315,200 @@
             <!-- STEP 4: CONFIRMATION -->
             <div class="step-panel bg-white p-4 rounded-4 shadow-sm d-none" id="step-4-panel">
                 <h4 class="fw-bold text-dark mb-4"><i class="fa-solid fa-clipboard-check text-primary me-2"></i>Step 4: Confirm Order</h4>
+                <input type="hidden" name="customer_payment_confirmed" id="customerPaymentConfirmed" value="0">
                 
                 <div class="alert alert-info border-0 rounded-3 mb-4">
                     Please review your order details below. Click <strong>Confirm Order</strong> at the bottom to finalize.
                 </div>
 
-                <!-- Selected Services Summary -->
-                <div class="mb-4">
-                    <h6 class="fw-bold text-muted small text-uppercase mb-2">Selected Services</h6>
-                    <div class="list-group list-group-flush rounded-3" id="confirm-services-list">
-                        <!-- Dynamic items -->
-                    </div>
-                </div>
-
-                <!-- Scheduling Summary -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-sm-6">
-                        <h6 class="fw-bold text-muted small text-uppercase mb-1">Pickup Scheduled</h6>
-                        <p class="mb-0 text-dark" id="confirm-pickup-time"></p>
-                        <small class="text-muted" id="confirm-pickup-addr"></small>
-                    </div>
-                    <div class="col-12 col-sm-6">
-                        <h6 class="fw-bold text-muted small text-uppercase mb-1">Delivery Scheduled</h6>
-                        <p class="mb-0 text-dark" id="confirm-delivery-time"></p>
-                        <small class="text-muted" id="confirm-delivery-addr"></small>
-                    </div>
-                </div>
-
-                <!-- Payment Summary -->
                 <div class="row g-3">
-                    <div class="col-12 col-sm-6">
-                        <h6 class="fw-bold text-muted small text-uppercase mb-1">Payment Method</h6>
-                        <p class="mb-0 text-dark text-capitalize" id="confirm-payment-method"></p>
-                        <small class="text-muted d-none" id="confirm-payment-phone-container">Phone: <span id="confirm-payment-phone"></span></small>
+                    <!-- Selected Services Summary -->
+                    <div class="col-12">
+                        <div class="card border-0 bg-light rounded-4 mb-3">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-muted small text-uppercase mb-3 d-flex align-items-center">
+                                    <i class="fa-solid fa-hands-wash text-primary me-2"></i>Selected Services
+                                </h6>
+                                <div class="list-group list-group-flush rounded-3 bg-transparent" id="confirm-services-list">
+                                    <!-- Dynamic items -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-12 col-sm-6">
-                        <h6 class="fw-bold text-muted small text-uppercase mb-1">Special Instructions</h6>
-                        <p class="mb-0 text-dark small" id="confirm-special-instr"></p>
+
+                    <!-- Pickup & Delivery Summary -->
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light rounded-4 h-100">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-muted small text-uppercase mb-3 d-flex align-items-center">
+                                    <i class="fa-solid fa-calendar-days text-primary me-2"></i>Pickup Schedule
+                                </h6>
+                                <div class="mb-2 text-dark">
+                                    <strong>Time:</strong> <span id="confirm-pickup-time"></span>
+                                </div>
+                                <div class="text-secondary small">
+                                    <strong>Address:</strong> <span id="confirm-pickup-addr"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light rounded-4 h-100">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-muted small text-uppercase mb-3 d-flex align-items-center">
+                                    <i class="fa-solid fa-truck text-primary me-2"></i>Delivery Schedule
+                                </h6>
+                                <div class="mb-2 text-dark">
+                                    <strong>Time:</strong> <span id="confirm-delivery-time"></span>
+                                </div>
+                                <div class="text-secondary small">
+                                    <strong>Address:</strong> <span id="confirm-delivery-addr"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment & Completion Summary -->
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light rounded-4 h-100">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-muted small text-uppercase mb-3 d-flex align-items-center">
+                                    <i class="fa-solid fa-credit-card text-primary me-2"></i>Payment Details
+                                </h6>
+                                <div class="mb-2 text-dark">
+                                    <strong>Method:</strong> <span id="confirm-payment-method" class="text-capitalize"></span>
+                                </div>
+                                <div class="text-secondary small d-none" id="confirm-payment-phone-container">
+                                    <strong>Phone:</strong> <span id="confirm-payment-phone"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light rounded-4 h-100">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-muted small text-uppercase mb-3 d-flex align-items-center">
+                                    <i class="fa-solid fa-clock text-primary me-2"></i>Estimated Completion
+                                </h6>
+                                <div class="text-dark fs-5 fw-semibold" id="confirm-est-completion"></div>
+                                <div class="text-muted small mt-1">Ready for pickup/delivery at this time.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Instructions Summary -->
+                    <div class="col-12">
+                        <div class="card border-0 bg-light rounded-4">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-muted small text-uppercase mb-2 d-flex align-items-center">
+                                    <i class="fa-solid fa-comment-dots text-primary me-2"></i>Special Instructions
+                                </h6>
+                                <p class="mb-0 text-dark small" id="confirm-special-instr"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Navigation Controls -->
             <div class="d-flex justify-content-between mt-4">
-                <button type="button" class="btn btn-outline-secondary fw-bold px-4 py-2 rounded-3 d-none" id="btn-back">Back</button>
+                <button type="button" class="btn btn-outline-secondary fw-bold px-4 py-2 rounded-3 d-none" id="btn-back">
+                    &larr; Previous
+                </button>
                 <div class="ms-auto"></div>
-                <button type="button" class="btn btn-primary fw-bold px-4 py-2 rounded-3" id="btn-next">Next Step</button>
-                <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 d-none" id="btn-confirm">Confirm Order</button>
+
+                {{-- Shown for Cash on Delivery --}}
+                <button type="button"
+                        class="btn btn-primary px-4"
+                        id="cashNextBtn"
+                        onclick="goToStep(4)"
+                        style="display:none;">
+                    Next Step &rarr;
+                </button>
+
+                {{-- Shown for Zaad / Edahab after filling proof fields --}}
+                <button type="button"
+                        class="btn btn-success px-4 fw-semibold"
+                        id="iHavePaidBtn"
+                        onclick="handleIHavePaid()"
+                        style="display:none;">
+                    ✅ I Have Paid — Proceed to Confirmation
+                </button>
+
+                <button type="button" class="btn btn-primary fw-bold px-4 py-2 rounded-3" id="btn-next">
+                    Next Step &rarr;
+                </button>
+                
+                <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 d-none" id="btn-confirm">
+                    ✓ Confirm Order
+                </button>
             </div>
         </div>
 
         <!-- Sticky Right Summary Panel -->
         <div class="col-12 col-md-4" id="orderSidebarColumn" style="display:none;">
-            <div class="card border-0 shadow-sm rounded-4 bg-white sticky-top" style="top: 100px; z-index: 1;">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="fw-bold text-dark mb-0">Order Summary</h5>
+            <div class="card sticky-summary-card bg-white border-0 shadow">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                        <i class="fa-solid fa-receipt text-primary me-2"></i>Order Summary
+                    </h5>
                 </div>
-                <div class="card-body p-4 pt-0">
-                    <div class="d-flex flex-column gap-3 mb-4" id="summaryServicesList">
+                <div class="card-body p-4">
+                    <!-- Selected Services list -->
+                    <div class="d-flex flex-column gap-2 mb-3" id="summaryServicesList">
                         <div class="text-center py-4 text-muted small" id="summary-empty-msg">
                             No services selected.
                         </div>
                     </div>
+                    
                     <hr class="text-secondary opacity-25 my-3">
                     
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-semibold">Grand Total:</span>
-                        <span class="fw-bold text-primary fs-5" id="summaryGrandTotal">$0.00</span>
+                    <!-- Details Grid -->
+                    <div class="d-flex flex-column gap-2 mb-3 small text-muted">
+                        <!-- Pickup -->
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-truck-pickup mt-1 text-primary"></i>
+                            <div>
+                                <span class="fw-bold d-block text-dark">Pickup Address:</span>
+                                <span id="summaryPickupAddress">Not provided</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Delivery -->
+                        <div class="d-flex align-items-start gap-2 mt-2">
+                            <i class="fa-solid fa-truck mt-1 text-primary"></i>
+                            <div>
+                                <span class="fw-bold d-block text-dark">Delivery Address:</span>
+                                <span id="summaryDeliveryAddress">Not provided</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Est Completion -->
+                        <div class="d-flex align-items-start gap-2 mt-2">
+                            <i class="fa-solid fa-calendar-check mt-1 text-primary"></i>
+                            <div>
+                                <span class="fw-bold d-block text-dark">Estimated Completion:</span>
+                                <span id="summaryEstCompletion">Not scheduled</span>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Grand Total -->
                     <div id="summaryPaymentRow" style="display:none;">
                         <hr class="text-secondary opacity-25 my-3">
-                        <div class="bg-light p-3 rounded-3">
+                        <div class="bg-light p-3 rounded-3 mb-3">
                             <span class="text-muted small d-block mb-1">Payment Channel</span>
                             <div class="fw-bold text-capitalize text-dark" id="summaryPaymentLabel">Cash on Delivery</div>
                         </div>
+                    </div>
+                    
+                    <hr class="text-secondary opacity-25 my-3">
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark">Grand Total:</span>
+                        <span class="fw-bold text-primary fs-4" id="summaryGrandTotal">$0.00</span>
                     </div>
                 </div>
             </div>
@@ -339,448 +518,5 @@
 @endsection
 
 @section('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let currentStep = 1;
-        const totalSteps = 4;
-        let selectedPaymentLabel = 'Cash on Delivery';
-        
-        // DOM Elements
-        const form = document.getElementById('multiStepOrderForm');
-        const nextBtn = document.getElementById('btn-next');
-        const backBtn = document.getElementById('btn-back');
-        const confirmBtn = document.getElementById('btn-confirm');
-        const phoneInputContainer = document.getElementById('phone-input-container');
-        
-        // Set min values for datetime local inputs
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(9, 0, 0, 0); // Default to 9:00 AM tomorrow
-        const formattedTomorrow = tomorrow.toISOString().slice(0, 16);
-        
-        const pickupTimeInput = document.getElementById('pickup_time');
-        const deliveryTimeInput = document.getElementById('delivery_time');
-        
-        pickupTimeInput.min = formattedTomorrow;
-        pickupTimeInput.value = formattedTomorrow;
-        
-        // Delivery date min set to pickup time + 2 hours minimum
-        pickupTimeInput.addEventListener('change', function() {
-            if (this.value) {
-                const pickupDate = new Date(this.value);
-                pickupDate.setHours(pickupDate.getHours() + 2);
-                deliveryTimeInput.min = pickupDate.toISOString().slice(0, 16);
-                deliveryTimeInput.value = pickupDate.toISOString().slice(0, 16);
-            }
-        });
-        
-        // Initial trigger
-        pickupTimeInput.dispatchEvent(new Event('change'));
-
-        // Step transition logic
-        function showStep(step) {
-            document.querySelectorAll('.step-panel').forEach(p => p.classList.add('d-none'));
-            document.getElementById(`step-${step}-panel`).classList.remove('d-none');
-            
-            // Update Indicators
-            for (let i = 1; i <= totalSteps; i++) {
-                const ind = document.getElementById(`indicator-${i}`);
-                const badge = ind.querySelector('.badge');
-                if (i === step) {
-                    ind.classList.remove('text-muted');
-                    ind.classList.add('text-primary', 'fw-bold');
-                    badge.classList.remove('bg-secondary');
-                    badge.classList.add('bg-primary');
-                } else if (i < step) {
-                    ind.classList.remove('text-muted');
-                    ind.classList.add('text-success');
-                    badge.classList.remove('bg-secondary', 'bg-primary');
-                    badge.classList.add('bg-success');
-                } else {
-                    ind.classList.remove('text-primary', 'text-success', 'fw-bold');
-                    ind.classList.add('text-muted');
-                    badge.classList.remove('bg-primary', 'bg-success');
-                    badge.classList.add('bg-secondary');
-                }
-            }
-
-            // Buttons controls
-            if (step === 1) {
-                backBtn.classList.add('d-none');
-                nextBtn.classList.remove('d-none');
-                confirmBtn.classList.add('d-none');
-            } else if (step === totalSteps) {
-                backBtn.classList.remove('d-none');
-                nextBtn.classList.add('d-none');
-                confirmBtn.classList.remove('d-none');
-                compileStep4Summary();
-            } else {
-                backBtn.classList.remove('d-none');
-                nextBtn.classList.remove('d-none');
-                confirmBtn.classList.add('d-none');
-            }
-
-            // Sidebar visibility and content logic
-            const sidebarCol = document.getElementById('orderSidebarColumn');
-            const stepsCol   = document.getElementById('stepsColumn');
-            const paymentRow = document.getElementById('summaryPaymentRow');
-
-            if (step >= 3) {
-                // Show sidebar and shrink steps column
-                sidebarCol.style.display = 'block';
-                stepsCol.className = 'col-12 col-md-8';
-
-                // Rebuild summary with current selections
-                buildOrderSummary();
-
-                // Show payment row only on step 4
-                paymentRow.style.display = (step === 4) ? 'block' : 'none';
-            } else {
-                // Hide sidebar and expand steps column to full width
-                sidebarCol.style.display = 'none';
-                stepsCol.className = 'col-12';
-            }
-        }
-
-        // Live calculation logic
-        function updatePrices() {
-            const checkboxes = document.querySelectorAll('.service-checkbox:checked');
-            
-            checkboxes.forEach(function (chk) {
-                const serviceId = chk.dataset.serviceId;
-                const priceItem = parseFloat(chk.dataset.priceItem);
-                const priceKg = parseFloat(chk.dataset.priceKg);
-                
-                const inputsDiv = document.getElementById(`inputs-${serviceId}`);
-                
-                // Get qty and weight values
-                const qtyInput = inputsDiv.querySelector('.qty-input');
-                const weightInput = inputsDiv.querySelector('.weight-input');
-                
-                const qty = parseInt(qtyInput.value) || 1;
-                const weight = parseFloat(weightInput ? weightInput.value : 0) || 0;
-                
-                let subtotal = 0;
-                
-                if (weight > 0 && priceKg > 0) {
-                    subtotal = weight * priceKg;
-                } else {
-                    subtotal = qty * priceItem;
-                }
-                
-                // Update subtotal display in Step 1
-                const subtotalValEl = document.getElementById(`subtotal-val-${serviceId}`);
-                if (subtotalValEl) {
-                    subtotalValEl.textContent = `$${subtotal.toFixed(2)}`;
-                }
-            });
-
-            // Rebuild sidebar summary if it's currently active (steps >= 3)
-            if (currentStep >= 3) {
-                buildOrderSummary();
-            }
-        }
-
-        // Build Order Summary for Sidebar (Steps 3 & 4)
-        function buildOrderSummary() {
-            const listEl  = document.getElementById('summaryServicesList');
-            const totalEl = document.getElementById('summaryGrandTotal');
-            const checked = document.querySelectorAll('.service-checkbox:checked');
-
-            if (checked.length === 0) {
-                listEl.innerHTML = '<p class="text-muted small">No services selected.</p>';
-                totalEl.textContent = '$0.00';
-                return;
-            }
-
-            let html = '';
-            let total = 0;
-
-            checked.forEach(function(checkbox) {
-                const serviceId    = checkbox.dataset.serviceId;
-                const serviceEl    = document.querySelector('.service-item[data-service-id="' + serviceId + '"]');
-                const serviceName  = serviceEl.dataset.serviceName;
-                const pricePerKg   = parseFloat(serviceEl.dataset.pricePerKg)   || 0;
-                const pricePerItem = parseFloat(serviceEl.dataset.pricePerItem) || 0;
-                
-                const qty    = parseFloat(document.querySelector('.service-qty[data-service-id="'    + serviceId + '"]')?.value) || 0;
-                const weight = parseFloat(document.querySelector('.service-weight[data-service-id="' + serviceId + '"]')?.value) || 0;
-                
-                let subtotal = 0;
-                if (weight > 0 && pricePerKg > 0) {
-                    subtotal = weight * pricePerKg;
-                } else {
-                    subtotal = qty * pricePerItem;
-                }
-                total += subtotal;
-
-                html += `
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <div class="fw-semibold small">${serviceName}</div>
-                        <div class="text-muted" style="font-size:0.75rem;">
-                            ${qty > 0 ? 'Qty: ' + qty : ''}
-                            ${weight > 0 ? (qty > 0 ? ' · ' : '') + weight + ' kg' : ''}
-                        </div>
-                    </div>
-                    <span class="text-primary small fw-semibold">$${subtotal.toFixed(2)}</span>
-                </div>`;
-            });
-
-            listEl.innerHTML = html;
-            totalEl.textContent = '$' + total.toFixed(2);
-            document.getElementById('summaryPaymentLabel').textContent = selectedPaymentLabel;
-        }
-
-        // Event listeners for Step 1 selection and inputs
-        document.querySelectorAll('.service-checkbox').forEach(function (chk) {
-            chk.addEventListener('change', function () {
-                const serviceId = this.dataset.serviceId;
-                const card = document.getElementById(`card-${serviceId}`);
-                const inputsDiv = document.getElementById(`inputs-${serviceId}`);
-                const subtotalContainer = document.getElementById(`subtotal-container-${serviceId}`);
-                
-                if (this.checked) {
-                    inputsDiv.classList.remove('d-none');
-                    subtotalContainer.classList.remove('d-none');
-                    card.classList.add('border-primary', 'bg-light');
-                } else {
-                    inputsDiv.classList.add('d-none');
-                    subtotalContainer.classList.add('d-none');
-                    card.classList.remove('border-primary', 'bg-light');
-                }
-                updatePrices();
-            });
-        });
-
-        document.querySelectorAll('.qty-input, .weight-input').forEach(function (input) {
-            input.addEventListener('input', updatePrices);
-            input.addEventListener('change', updatePrices);
-        });
-
-        // Step 3 Payment card selection listeners
-        document.querySelectorAll('.payment-card').forEach(function (card) {
-            card.addEventListener('click', function () {
-                document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active', 'border-primary', 'bg-primary-subtle'));
-                this.classList.add('active', 'border-primary', 'bg-primary-subtle');
-                
-                const radio = this.querySelector('.payment-radio');
-                radio.checked = true;
-                
-                const method = radio.value;
-                const instructions = document.getElementById('mobilePayInstructions');
-                const proofFields  = document.getElementById('mobilePayProofFields');
-                const merchantDisplay = document.getElementById('merchantNumberDisplay');
-
-                if (method === 'zaad') {
-                    merchantDisplay.textContent = '252-61-4700000';
-                    instructions.style.display = 'block';
-                    proofFields.style.display  = 'block';
-                    document.getElementById('payment_phone').required = true;
-                } else if (method === 'edahab') {
-                    merchantDisplay.textContent = '252-63-4700000';
-                    instructions.style.display = 'block';
-                    proofFields.style.display  = 'block';
-                    document.getElementById('payment_phone').required = true;
-                } else {
-                    instructions.style.display = 'none';
-                    proofFields.style.display  = 'none';
-                    document.getElementById('payment_phone').required = false;
-                }
-                
-                // Keep the original phone-input-container always hidden to avoid duplicating inputs in UI
-                phoneInputContainer.classList.add('d-none');
-                
-                // Update selected payment label and the summary label element
-                selectedPaymentLabel = this.dataset.label;
-                const summaryPaymentLabel = document.getElementById('summaryPaymentLabel');
-                if (summaryPaymentLabel) {
-                    summaryPaymentLabel.textContent = selectedPaymentLabel;
-                }
-            });
-        });
-        
-        // Trigger initial payment display
-        document.getElementById('pay-card-cash').dispatchEvent(new Event('click'));
-
-        // Wizard navigation buttons actions
-        nextBtn.addEventListener('click', function () {
-            if (validateStep(currentStep)) {
-                currentStep++;
-                showStep(currentStep);
-            }
-        });
-
-        backBtn.addEventListener('click', function () {
-            currentStep--;
-            showStep(currentStep);
-        });
-
-        // Client-side validations
-        function validateStep(step) {
-            if (step === 1) {
-                const checked = document.querySelectorAll('.service-checkbox:checked');
-                if (checked.length === 0) {
-                    alert('Please select at least one laundry service to continue.');
-                    return false;
-                }
-                
-                // Ensure quantities are set
-                let valid = true;
-                checked.forEach(chk => {
-                    const id = chk.dataset.serviceId;
-                    const qty = document.getElementById(`inputs-${id}`).querySelector('.qty-input').value;
-                    if (parseInt(qty) < 1) {
-                        alert('Quantity must be 1 or greater.');
-                        valid = false;
-                    }
-                });
-                return valid;
-            }
-            
-            if (step === 2) {
-                const pickupAddr = document.getElementById('pickup_address').value.trim();
-                const deliveryAddr = document.getElementById('delivery_address').value.trim();
-                const pickupTime = document.getElementById('pickup_time').value;
-                const deliveryTime = document.getElementById('delivery_time').value;
-                
-                if (!pickupAddr || !deliveryAddr || !pickupTime || !deliveryTime) {
-                    alert('Please fill out all address and scheduling fields.');
-                    return false;
-                }
-                
-                if (new Date(deliveryTime) <= new Date(pickupTime)) {
-                    alert('Delivery time must be scheduled after the pickup time.');
-                    return false;
-                }
-                return true;
-            }
-
-            if (step === 3) {
-                if (!validateStep3()) {
-                    return false;
-                }
-                const method = document.querySelector('input[name="payment_method"]:checked').value;
-                if (method === 'zaad' || method === 'edahab') {
-                    const phone = document.getElementById('walletPhoneInput').value.trim();
-                    document.getElementById('payment_phone').value = phone;
-                    if (!phone) {
-                        alert('Please enter your mobile money phone number.');
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return true;
-        }
-
-        // Compile Summary details for Step 4 review
-        function compileStep4Summary() {
-            const list = document.getElementById('confirm-services-list');
-            list.innerHTML = '';
-            
-            const checked = document.querySelectorAll('.service-checkbox:checked');
-            checked.forEach(function (chk) {
-                const serviceId = chk.dataset.serviceId;
-                const name = chk.dataset.name;
-                const priceItem = parseFloat(chk.dataset.priceItem);
-                const priceKg = parseFloat(chk.dataset.priceKg);
-                
-                const inputsDiv = document.getElementById(`inputs-${serviceId}`);
-                const qty = inputsDiv.querySelector('.qty-input').value;
-                const weight = inputsDiv.querySelector('.weight-input') ? inputsDiv.querySelector('.weight-input').value : '';
-                const notes = inputsDiv.querySelector('.notes-input').value;
-                
-                let subtotal = 0;
-                let qtyText = '';
-                if (weight && parseFloat(weight) > 0) {
-                    subtotal = parseFloat(weight) * priceKg;
-                    qtyText = `Weight: ${weight} kg (Pricing per KG)`;
-                } else {
-                    subtotal = parseInt(qty) * priceItem;
-                    qtyText = `Qty: ${qty} items (Pricing per Item)`;
-                }
-                
-                const li = document.createElement('div');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center py-3 border-bottom';
-                li.innerHTML = `
-                    <div>
-                        <div class="fw-bold text-dark">${name}</div>
-                        <span class="text-muted small">${qtyText}</span>
-                        ${notes ? `<div class="small text-warning mt-1"><i class="fa-regular fa-comment-dots"></i> ${notes}</div>` : ''}
-                    </div>
-                    <span class="fw-bold text-primary">$${subtotal.toFixed(2)}</span>
-                `;
-                list.appendChild(li);
-            });
-
-            // Timings & Addresses
-            document.getElementById('confirm-pickup-time').textContent = new Date(pickupTimeInput.value).toLocaleString();
-            document.getElementById('confirm-pickup-addr').textContent = document.getElementById('pickup_address').value;
-            document.getElementById('confirm-delivery-time').textContent = new Date(deliveryTimeInput.value).toLocaleString();
-            document.getElementById('confirm-delivery-addr').textContent = document.getElementById('delivery_address').value;
-
-            // Payment method
-            const method = document.querySelector('input[name="payment_method"]:checked').value;
-            document.getElementById('confirm-payment-method').textContent = method === 'cash' ? 'Cash on Delivery' : method.toUpperCase();
-            
-            const phoneVal = document.getElementById('payment_phone').value.trim();
-            if (method !== 'cash' && phoneVal) {
-                document.getElementById('confirm-payment-phone-container').classList.remove('d-none');
-                document.getElementById('confirm-payment-phone').textContent = phoneVal;
-            } else {
-                document.getElementById('confirm-payment-phone-container').classList.add('d-none');
-            }
-
-            // Instructions
-            const instr = document.getElementById('special_instructions').value.trim();
-            document.getElementById('confirm-special-instr').textContent = instr ? instr : 'None';
-        }
-
-        // Validate Step 3 fields (wallet phone + sender name)
-        function validateStep3() {
-            const method = document.querySelector('input[name="payment_method"]:checked')?.value;
-            if (method === 'zaad' || method === 'edahab') {
-                const phone  = document.getElementById('walletPhoneInput').value.trim();
-                const sender = document.getElementById('senderNameInput').value.trim();
-                if (!phone || !sender) {
-                    alert('Please enter your Wallet Phone Number and Sender Name to continue.');
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        // Add dynamically created hidden fields to the form
-        function addHidden(name, value) {
-            let input = form.querySelector(`input[name="${name}"]`);
-            if (!input) {
-                input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                form.appendChild(input);
-            }
-            input.value = value;
-        }
-
-        // Populate hidden fields before submitting
-        function populateHiddenFields() {
-            const walletPhone  = document.getElementById('walletPhoneInput')?.value.trim()  || '';
-            const senderName   = document.getElementById('senderNameInput')?.value.trim()   || '';
-            addHidden('wallet_phone', walletPhone);
-            addHidden('sender_name',  senderName);
-            
-            // Also mirror wallet phone to payment_phone
-            const method = document.querySelector('input[name="payment_method"]:checked')?.value;
-            if (method === 'zaad' || method === 'edahab') {
-                document.getElementById('payment_phone').value = walletPhone;
-            }
-        }
-
-        // Listen for form submit to populate proof fields
-        form.addEventListener('submit', function (e) {
-            populateHiddenFields();
-        });
-    });
-</script>
+@vite('resources/js/customer-order.js')
 @endsection

@@ -189,7 +189,11 @@ class OrderController extends Controller
 
             // Determine payment_status based on method
             if (in_array($validated['payment_method'], ['zaad', 'edahab'])) {
-                $order->payment_status = 'pending_verification';
+                // If customer confirmed payment in Step 3, go straight to awaiting_staff_review
+                $customerConfirmed = $request->input('customer_payment_confirmed', '0');
+                $order->payment_status = ($customerConfirmed === '1')
+                    ? 'awaiting_staff_review'
+                    : 'pending_verification';
 
                 // Save proof fields to payments table
                 $payment->wallet_phone = $request->input('wallet_phone');
