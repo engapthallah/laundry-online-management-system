@@ -49,8 +49,19 @@
 </div>
 
 @php
-    $pickupOrders = $orders->filter(fn($o) => in_array($o->status, ['pending_pickup', 'picked_up_from_customer']));
-    $returnOrders = $orders->filter(fn($o) => in_array($o->status, ['ready_for_delivery', 'picked_up_from_laundry', 'on_the_way']));
+    $allOrders = $orders->getCollection(); // get underlying collection from paginator
+
+    $pickupOrders = $allOrders->filter(function($o) {
+        $statusOk  = in_array($o->status, ['pending_pickup', 'picked_up_from_customer']);
+        $paymentOk = ($o->payment_method === 'cash') || ($o->payment_status === 'verified');
+        return $statusOk && $paymentOk;
+    });
+
+    $returnOrders = $allOrders->filter(function($o) {
+        $statusOk  = in_array($o->status, ['ready_for_delivery', 'picked_up_from_laundry', 'on_the_way']);
+        $paymentOk = ($o->payment_method === 'cash') || ($o->payment_status === 'verified');
+        return $statusOk && $paymentOk;
+    });
 @endphp
 
 <!-- Pickup Phase Section -->

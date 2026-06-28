@@ -95,9 +95,16 @@ class User extends Authenticatable
         return $this->hasMany(DeliveryAssignment::class, 'delivery_agent_id');
     }
 
-    public function assignedDeliveryOrders(): HasMany
+    public function assignedDeliveryOrders()
     {
-        return $this->hasMany(Order::class, 'delivery_agent_id');
+        return $this->hasMany(\App\Models\Order::class, 'delivery_agent_id')
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            });
     }
 
     public function notifications(): HasMany

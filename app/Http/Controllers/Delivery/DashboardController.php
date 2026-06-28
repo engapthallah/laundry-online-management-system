@@ -20,7 +20,15 @@ class DashboardController extends Controller
         $agentId = Auth::id();
 
         // 1. Total Deliveries (All Time)
-        $totalAssigned = Order::where('delivery_agent_id', $agentId)->count();
+        $totalAssigned = Order::where('delivery_agent_id', $agentId)
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
+            ->count();
 
         // 2. Active Deliveries
         $activeDeliveriesCount = Order::where('delivery_agent_id', $agentId)
@@ -31,12 +39,26 @@ class DashboardController extends Controller
                 'picked_up_from_laundry',
                 'on_the_way'
             ])
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
             ->count();
 
         // 3. Delivered Today
         $deliveredTodayCount = Order::where('delivery_agent_id', $agentId)
             ->where('status', 'delivered')
             ->whereDate('delivery_time', Carbon::today())
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
             ->count();
 
         // 4. Total Deliveries This Month
@@ -44,6 +66,13 @@ class DashboardController extends Controller
             ->where('status', 'delivered')
             ->whereMonth('delivery_time', Carbon::now()->month)
             ->whereYear('delivery_time', Carbon::now()->year)
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
             ->count();
 
         // 5. Up to 6 current active delivery assignments (orders)
@@ -55,6 +84,13 @@ class DashboardController extends Controller
                 'picked_up_from_laundry',
                 'on_the_way'
             ])
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
             ->with(['customer'])
             ->orderBy('updated_at', 'desc')
             ->limit(6)
@@ -64,6 +100,13 @@ class DashboardController extends Controller
         $statusCounts = Order::where('delivery_agent_id', $agentId)
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
             ->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status')
@@ -93,6 +136,13 @@ class DashboardController extends Controller
                           'picked_up_from_laundry',
                           'on_the_way'
                       ]);
+            })
+            ->where(function ($q) {
+                $q->where('payment_method', 'cash')
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
             })
             ->with(['customer'])
             ->orderByRaw('COALESCE(delivery_time, pickup_time) ASC')

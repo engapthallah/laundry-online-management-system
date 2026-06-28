@@ -44,21 +44,25 @@
     $currentSortBy = request('sort_by', 'updated_at');
     $currentSortDir = request('sort_dir', 'desc');
 
-    function getSortUrl($column, $currentSortBy, $currentSortDir) {
-        $newDir = ($currentSortBy === $column && $currentSortDir === 'asc') ? 'desc' : 'asc';
-        return route('staff.orders.index', array_merge(request()->query(), [
-            'sort_by' => $column,
-            'sort_dir' => $newDir
-        ]));
+    if (!function_exists('getSortUrl')) {
+        function getSortUrl($column, $currentSortBy, $currentSortDir) {
+            $newDir = ($currentSortBy === $column && $currentSortDir === 'asc') ? 'desc' : 'asc';
+            return route('staff.orders.index', array_merge(request()->query(), [
+                'sort_by' => $column,
+                'sort_dir' => $newDir
+            ]));
+        }
     }
 
-    function getSortIcon($column, $currentSortBy, $currentSortDir) {
-        if ($currentSortBy !== $column) {
-            return '<i class="fa-solid fa-sort text-muted ms-1 small"></i>';
+    if (!function_exists('getSortIcon')) {
+        function getSortIcon($column, $currentSortBy, $currentSortDir) {
+            if ($currentSortBy !== $column) {
+                return '<i class="fa-solid fa-sort text-muted ms-1 small"></i>';
+            }
+            return $currentSortDir === 'asc' 
+                ? '<i class="fa-solid fa-sort-up text-primary ms-1"></i>' 
+                : '<i class="fa-solid fa-sort-down text-primary ms-1"></i>';
         }
-        return $currentSortDir === 'asc' 
-            ? '<i class="fa-solid fa-sort-up text-primary ms-1"></i>' 
-            : '<i class="fa-solid fa-sort-down text-primary ms-1"></i>';
     }
 @endphp
 
@@ -170,6 +174,13 @@
                                 </td>
                                 <td>
                                     <span class="fw-bold text-dark">#{{ $order->order_number }}</span>
+                                    @if($order->payment_status === 'pending_verification')
+                                        <span class="badge bg-warning text-dark ms-1">⏳ Verify Payment</span>
+                                    @elseif($order->payment_status === 'rejected')
+                                        <span class="badge bg-danger ms-1">❌ Payment Rejected</span>
+                                    @elseif($order->payment_status === 'verified')
+                                        <span class="badge bg-success ms-1">✅ Verified</span>
+                                    @endif
                                 </td>
                                 <td class="fw-semibold text-secondary">
                                     {{ explode(' ', $order->customer->name)[0] }}

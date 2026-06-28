@@ -358,7 +358,7 @@ class AnalyticsService
         $result = [];
 
         foreach ($agents as $agent) {
-            $assignmentsQuery = DeliveryAssignment::where('delivery_agent_id', $agent->id)
+            $assignmentsQuery = DeliveryAssignment::where('delivery_assignments.delivery_agent_id', $agent->id)
                 ->whereBetween('delivery_assignments.created_at', [$start, $end]);
 
             $totalAssigned = $assignmentsQuery->count();

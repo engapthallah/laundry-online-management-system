@@ -157,6 +157,8 @@ Route::prefix('staff')->middleware(['auth', 'staff'])->name('staff.')->group(fun
     Route::get('/orders', [\App\Http\Controllers\Staff\OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [\App\Http\Controllers\Staff\OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [\App\Http\Controllers\Staff\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::patch('/orders/{order}/verify-payment', [\App\Http\Controllers\Staff\OrderController::class, 'verifyPayment'])->name('orders.verifyPayment');
+    Route::patch('/orders/{order}/reject-payment', [\App\Http\Controllers\Staff\OrderController::class, 'rejectPayment'])->name('orders.rejectPayment');
 
     // Notifications
     Route::get('/notifications', [\App\Http\Controllers\Staff\NotificationController::class, 'index'])->name('notifications.index');
@@ -202,7 +204,10 @@ Route::prefix('customer')->middleware(['auth', 'customer'])->name('customer.')->
 
     // Orders
     Route::resource('orders', \App\Http\Controllers\Customer\OrderController::class)->only(['index', 'create', 'store', 'show']);
-    Route::post('orders/{order}/cancel', [\App\Http\Controllers\Customer\OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::match(['post', 'patch'], 'orders/{order}/cancel', [\App\Http\Controllers\Customer\OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::patch('/orders/{order}/confirm-payment', 
+        [\App\Http\Controllers\Customer\OrderController::class, 'confirmPayment'])
+        ->name('orders.confirmPayment');
 
     // Payments
     Route::get('payments', [\App\Http\Controllers\Customer\PaymentController::class, 'index'])->name('payments.index');

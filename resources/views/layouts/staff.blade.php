@@ -203,7 +203,7 @@
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 <span class="me-auto">Active Orders</span>
                 <span class="badge bg-warning text-dark badge-count">
-                    {{ Auth::user()->assignedOrders()->whereIn('status', ['confirmed','washing','drying','ironing','folding'])->count() }}
+                    {{ \App\Models\Order::where('staff_id', Auth::id())->whereIn('status', ['delivered_to_laundry', 'processing'])->count() }}
                 </span>
             </a>
 
@@ -271,7 +271,7 @@
                     <i class="fa-solid fa-spinner fa-spin"></i>
                     <span class="me-auto">Active Orders</span>
                     <span class="badge bg-warning text-dark badge-count">
-                        {{ Auth::user()->assignedOrders()->whereIn('status', ['confirmed','washing','drying','ironing','folding'])->count() }}
+                        {{ \App\Models\Order::where('staff_id', Auth::id())->whereIn('status', ['delivered_to_laundry', 'processing'])->count() }}
                     </span>
                 </a>
 

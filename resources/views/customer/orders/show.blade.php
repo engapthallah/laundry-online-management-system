@@ -37,6 +37,18 @@
                 @case('pending')
                     <span class="badge bg-warning text-dark text-uppercase px-2.5 py-1.5">Pending</span>
                     @break
+                @case('pending_verification')
+                    <span class="badge bg-warning text-dark text-uppercase px-2.5 py-1.5">Pending Verification</span>
+                    @break
+                @case('awaiting_staff_review')
+                    <span class="badge bg-info text-uppercase px-2.5 py-1.5">Awaiting Review</span>
+                    @break
+                @case('verified')
+                    <span class="badge bg-success text-uppercase px-2.5 py-1.5">Verified</span>
+                    @break
+                @case('rejected')
+                    <span class="badge bg-danger text-uppercase px-2.5 py-1.5">Rejected</span>
+                    @break
                 @case('paid')
                     <span class="badge bg-success text-uppercase px-2.5 py-1.5">Paid</span>
                     @break
@@ -50,6 +62,83 @@
         </div>
     </div>
 </div>
+
+{{-- STEP 1: Customer has placed mobile payment order but not yet confirmed payment --}}
+@if(in_array($order->payment_method, ['zaad','edahab']) 
+    && $order->payment_status === 'pending_verification')
+<div class="alert alert-warning mt-3">
+    <h6 class="fw-bold">💳 Confirm Your Payment</h6>
+    <p class="mb-1">
+        Please transfer <strong>${{ number_format($order->total_price, 2) }}</strong> 
+        to the merchant number:
+    </p>
+    <p class="fs-5 fw-bold text-primary mb-3">
+        @if($order->payment_method === 'zaad') 252-61-4700000 
+        @else 252-63-4700000 @endif
+    </p>
+    <p class="mb-3">After sending the payment, click the button below to notify our staff.</p>
+
+    <form method="POST" 
+          action="{{ route('customer.orders.confirmPayment', $order->id) }}">
+        @csrf
+        @method('PATCH')
+        <div class="d-flex gap-3 flex-wrap">
+            <button type="submit" class="btn btn-success px-4 fw-semibold"
+                    onclick="return confirm('Confirm that you have sent the payment?')">
+                ✅ I Have Paid
+            </button>
+            <a href="{{ route('customer.support.create', ['order_id' => $order->id]) }}"
+               class="btn btn-outline-secondary">
+                💬 Need Help?
+            </a>
+        </div>
+    </form>
+</div>
+@endif
+
+{{-- STEP 2: Customer confirmed, waiting for staff review --}}
+@if(in_array($order->payment_method, ['zaad','edahab']) 
+    && $order->payment_status === 'awaiting_staff_review')
+<div class="alert alert-info mt-3">
+    <h6 class="fw-bold">⏳ Payment Under Review</h6>
+    <p class="mb-0">
+        Our staff is reviewing your payment. You will be notified once it is verified.
+    </p>
+</div>
+@endif
+
+{{-- STEP 3a: Payment verified --}}
+@if($order->payment_status === 'verified')
+<div class="alert alert-success mt-3">
+    <h6 class="fw-bold">✅ Payment Verified</h6>
+    <p class="mb-0">Your payment has been verified. Your order is being processed.</p>
+</div>
+@endif
+
+{{-- STEP 3b: Payment rejected --}}
+@if($order->payment_status === 'rejected')
+<div class="alert alert-danger mt-3">
+    <h6 class="fw-bold">❌ Payment Rejected</h6>
+    <p class="mb-3">
+        Your payment could not be verified. Please cancel this order or contact support.
+    </p>
+    <div class="d-flex gap-3 flex-wrap">
+        <form method="POST"
+              action="{{ route('customer.orders.cancel', $order->id) }}">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="btn btn-outline-danger"
+                    onclick="return confirm('Cancel this order?')">
+                🗑 Cancel Order
+            </button>
+        </form>
+        <a href="{{ route('customer.support.create', ['order_id' => $order->id]) }}"
+           class="btn btn-outline-primary">
+            💬 Contact Support
+        </a>
+    </div>
+</div>
+@endif
 
 <!-- Section 2: Visual Status Tracker -->
 <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">

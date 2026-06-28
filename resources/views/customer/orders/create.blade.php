@@ -228,6 +228,28 @@
                     <input type="text" name="payment_phone" id="payment_phone" class="form-control" placeholder="e.g. +25261XXXXXX">
                     <div class="form-text text-muted small">Enter the registered phone number to receive a payment prompt.</div>
                 </div>
+
+                <!-- Sub-step A — Show merchant number -->
+                <div id="mobilePayInstructions" style="display:none;" class="alert alert-info mt-3">
+                    <p class="fw-semibold mb-1">Transfer to this Merchant Number:</p>
+                    <p class="fs-5 fw-bold text-primary" id="merchantNumberDisplay"></p>
+                    <p class="small text-muted mb-0">After transferring, fill in your details below.</p>
+                </div>
+
+                <!-- Sub-step B — Customer proof fields (shown after merchant number) -->
+                <div id="mobilePayProofFields" style="display:none;" class="mt-3">
+                    <div class="mb-3">
+                        <label class="form-label">Your Wallet Phone Number <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="walletPhoneInput"
+                               placeholder="e.g. +25261XXXXXXX">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sender Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="senderNameInput"
+                               placeholder="Name shown on the transfer receipt">
+                        <div class="form-text">Enter the name that appears on your mobile money transfer.</div>
+                    </div>
+                </div>
             </div>
 
             <!-- STEP 4: CONFIRMATION -->
@@ -545,14 +567,29 @@
                 const radio = this.querySelector('.payment-radio');
                 radio.checked = true;
                 
-                // Show/hide phone inputs
-                if (radio.value === 'zaad' || radio.value === 'edahab') {
-                    phoneInputContainer.classList.remove('d-none');
+                const method = radio.value;
+                const instructions = document.getElementById('mobilePayInstructions');
+                const proofFields  = document.getElementById('mobilePayProofFields');
+                const merchantDisplay = document.getElementById('merchantNumberDisplay');
+
+                if (method === 'zaad') {
+                    merchantDisplay.textContent = '252-61-4700000';
+                    instructions.style.display = 'block';
+                    proofFields.style.display  = 'block';
+                    document.getElementById('payment_phone').required = true;
+                } else if (method === 'edahab') {
+                    merchantDisplay.textContent = '252-63-4700000';
+                    instructions.style.display = 'block';
+                    proofFields.style.display  = 'block';
                     document.getElementById('payment_phone').required = true;
                 } else {
-                    phoneInputContainer.classList.add('d-none');
+                    instructions.style.display = 'none';
+                    proofFields.style.display  = 'none';
                     document.getElementById('payment_phone').required = false;
                 }
+                
+                // Keep the original phone-input-container always hidden to avoid duplicating inputs in UI
+                phoneInputContainer.classList.add('d-none');
                 
                 // Update selected payment label and the summary label element
                 selectedPaymentLabel = this.dataset.label;
@@ -620,9 +657,13 @@
             }
 
             if (step === 3) {
+                if (!validateStep3()) {
+                    return false;
+                }
                 const method = document.querySelector('input[name="payment_method"]:checked').value;
                 if (method === 'zaad' || method === 'edahab') {
-                    const phone = document.getElementById('payment_phone').value.trim();
+                    const phone = document.getElementById('walletPhoneInput').value.trim();
+                    document.getElementById('payment_phone').value = phone;
                     if (!phone) {
                         alert('Please enter your mobile money phone number.');
                         return false;
@@ -695,6 +736,51 @@
             const instr = document.getElementById('special_instructions').value.trim();
             document.getElementById('confirm-special-instr').textContent = instr ? instr : 'None';
         }
+
+        // Validate Step 3 fields (wallet phone + sender name)
+        function validateStep3() {
+            const method = document.querySelector('input[name="payment_method"]:checked')?.value;
+            if (method === 'zaad' || method === 'edahab') {
+                const phone  = document.getElementById('walletPhoneInput').value.trim();
+                const sender = document.getElementById('senderNameInput').value.trim();
+                if (!phone || !sender) {
+                    alert('Please enter your Wallet Phone Number and Sender Name to continue.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Add dynamically created hidden fields to the form
+        function addHidden(name, value) {
+            let input = form.querySelector(`input[name="${name}"]`);
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                form.appendChild(input);
+            }
+            input.value = value;
+        }
+
+        // Populate hidden fields before submitting
+        function populateHiddenFields() {
+            const walletPhone  = document.getElementById('walletPhoneInput')?.value.trim()  || '';
+            const senderName   = document.getElementById('senderNameInput')?.value.trim()   || '';
+            addHidden('wallet_phone', walletPhone);
+            addHidden('sender_name',  senderName);
+            
+            // Also mirror wallet phone to payment_phone
+            const method = document.querySelector('input[name="payment_method"]:checked')?.value;
+            if (method === 'zaad' || method === 'edahab') {
+                document.getElementById('payment_phone').value = walletPhone;
+            }
+        }
+
+        // Listen for form submit to populate proof fields
+        form.addEventListener('submit', function (e) {
+            populateHiddenFields();
+        });
     });
 </script>
 @endsection

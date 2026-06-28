@@ -164,6 +164,17 @@
             <span class="badge-status badge-status-{{ $order->status }} fs-6">
                 {{ str_replace('_', ' ', $order->status) }}
             </span>
+            @if($order->payment_status === 'pending_verification')
+                <span class="badge bg-warning text-dark">⏳ Pending Customer Confirmation</span>
+            @elseif($order->payment_status === 'awaiting_staff_review')
+                <span class="badge bg-orange text-white" style="background-color:#fd7e14;">
+                    🔍 Awaiting Staff Review
+                </span>
+            @elseif($order->payment_status === 'verified')
+                <span class="badge bg-success">✅ Payment Verified</span>
+            @elseif($order->payment_status === 'rejected')
+                <span class="badge bg-danger">❌ Payment Rejected</span>
+            @endif
             <div class="text-secondary small mt-2">
                 <strong>Assigned:</strong> {{ $order->created_at->format('M d, Y h:i A') }}
             </div>
@@ -225,6 +236,14 @@
                         <strong>Payment Status:</strong> 
                         @if($order->payment_status === 'paid')
                             <span class="badge bg-success">Paid</span>
+                        @elseif($order->payment_status === 'verified')
+                            <span class="badge bg-success">Verified</span>
+                        @elseif($order->payment_status === 'awaiting_staff_review')
+                            <span class="badge bg-orange text-white" style="background-color:#fd7e14;">Awaiting Staff Review</span>
+                        @elseif($order->payment_status === 'pending_verification')
+                            <span class="badge bg-warning text-dark">Pending Verification</span>
+                        @elseif($order->payment_status === 'rejected')
+                            <span class="badge bg-danger">Rejected</span>
                         @elseif($order->payment_status === 'failed')
                             <span class="badge bg-danger">Failed</span>
                         @else
@@ -298,6 +317,77 @@
     <!-- Operations Col (Right) -->
     <div class="col-12 col-xl-4">
         
+        {{-- Mobile Payment Proof Card --}}
+        @if(in_array($order->payment_method, ['zaad', 'edahab']))
+        <div class="card shadow-sm mb-4 border-warning">
+            <div class="card-header bg-warning bg-opacity-10 py-3">
+                <h6 class="fw-bold mb-0">💳 Mobile Payment Proof</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <p class="text-muted small mb-0">Payment Method</p>
+                        <p class="fw-semibold text-uppercase mb-2">{{ $order->payment_method }}</p>
+                    </div>
+                    <div class="col-12">
+                        <p class="text-muted small mb-0">Customer Wallet Phone</p>
+                        <p class="fw-semibold mb-2">{{ $order->payment->wallet_phone ?? '—' }}</p>
+                    </div>
+                    <div class="col-12">
+                        <p class="text-muted small mb-0">Sender Name</p>
+                        <p class="fw-semibold mb-0">{{ $order->payment->sender_name ?? '—' }}</p>
+                    </div>
+                </div>
+
+                @if(in_array($order->payment_status, ['pending_verification','awaiting_staff_review']))
+                <div class="d-flex gap-3 mt-3">
+
+                    {{-- VERIFY button --}}
+                    <form method="POST"
+                          action="{{ route('staff.orders.verifyPayment', $order->id) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="btn btn-success px-4"
+                                onclick="return confirm('Confirm that you have verified this payment?')">
+                            ✅ Verify Payment
+                        </button>
+                    </form>
+
+                    {{-- REJECT button --}}
+                    <form method="POST"
+                          action="{{ route('staff.orders.rejectPayment', $order->id) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="btn btn-danger px-4"
+                                onclick="return confirm('Reject this payment? The customer will be notified.')">
+                            ❌ Reject Payment
+                        </button>
+                    </form>
+
+                </div>
+                @elseif($order->payment_status === 'verified')
+                <div class="alert alert-success mt-3 mb-0">
+                    ✅ Payment verified.
+                    @if($order->payment && $order->payment->verified_at)
+                        <small class="d-block text-muted">
+                            {{ \Carbon\Carbon::parse($order->payment->verified_at)->format('d M Y, H:i') }}
+                        </small>
+                    @endif
+                </div>
+                @elseif($order->payment_status === 'rejected')
+                <div class="alert alert-danger mt-3 mb-0">
+                    ❌ Payment was rejected.
+                    @if($order->payment && $order->payment->verified_at)
+                        <small class="d-block text-muted">
+                            {{ \Carbon\Carbon::parse($order->payment->verified_at)->format('d M Y, H:i') }}
+                        </small>
+                    @endif
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Status Update Panel -->
         <div class="card border-0 shadow-sm rounded-3 bg-white p-4 mb-4">
             <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">Update Processing Status</h5>
@@ -313,12 +403,44 @@
 
             @php
                 $nextStatusMap = [
-                    'confirmed'          => ['status' => 'processing', 'label' => 'Processing', 'btn_class' => 'btn-warning text-dark', 'icon' => 'fa-play', 'btn_text' => 'Start Processing'],
-                    'processing'         => ['status' => 'ready_for_delivery', 'label' => 'Ready for Delivery', 'btn_class' => 'btn-info text-dark', 'icon' => 'fa-circle-check', 'btn_text' => 'Mark Ready for Delivery'],
+                    'processing' => [
+                        'status'    => 'ready_for_delivery',
+                        'label'     => 'Ready for Delivery',
+                        'btn_class' => 'btn-info text-dark',
+                        'icon'      => 'fa-circle-check',
+                        'btn_text'  => 'Mark Ready for Delivery',
+                    ],
                 ];
 
                 $next = $nextStatusMap[$order->status] ?? null;
             @endphp
+
+            {{-- Informational messages for early order lifecycle stages --}}
+            @if($order->status === 'pending_pickup')
+            <div class="alert alert-secondary border-0 mb-4 text-center">
+                <i class="fa-solid fa-clock fa-2x mb-2 d-block text-secondary"></i>
+                <strong>Waiting for Pickup</strong>
+                <p class="small text-muted mb-0 mt-1">
+                    Delivery agent has not yet collected the items from the customer.
+                </p>
+            </div>
+            @elseif($order->status === 'picked_up_from_customer')
+            <div class="alert alert-primary border-0 mb-4 text-center">
+                <i class="fa-solid fa-truck fa-2x mb-2 d-block text-primary"></i>
+                <strong>Items Collected from Customer</strong>
+                <p class="small text-muted mb-0 mt-1">
+                    Delivery agent is on the way to the laundry shop.
+                </p>
+            </div>
+            @elseif($order->status === 'delivered_to_laundry')
+            <div class="alert alert-warning border-0 mb-4 text-center">
+                <i class="fa-solid fa-shirt fa-2x mb-2 d-block text-warning"></i>
+                <strong>Items Arrived at Laundry Shop</strong>
+                <p class="small text-muted mb-0 mt-1">
+                    Items are ready for you to begin processing.
+                </p>
+            </div>
+            @endif
 
             @if($next)
                 <div class="text-center py-3 bg-light rounded-3 mb-4">

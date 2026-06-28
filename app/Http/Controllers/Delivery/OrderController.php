@@ -26,23 +26,25 @@ class OrderController extends Controller
     {
         $agentId = Auth::id();
 
-        $query = Order::where('delivery_agent_id', $agentId)->with(['customer']);
+        // Determine status filter
+        $statusFilter = ($request->get('status') === 'delivered')
+            ? ['delivered']
+            : ['pending_pickup', 'picked_up_from_customer', 'ready_for_delivery',
+               'picked_up_from_laundry', 'on_the_way'];
 
-        // Filter based on status parameter
-        if ($request->get('status') === 'delivered') {
-            $query->where('status', 'delivered');
-        } else {
-            // Default to active statuses
-            $query->whereIn('status', [
-                'pending_pickup',
-                'picked_up_from_customer',
-                'ready_for_delivery',
-                'picked_up_from_laundry',
-                'on_the_way'
-            ]);
-        }
+        $query = Order::where('delivery_agent_id', $agentId)
+            ->whereIn('status', $statusFilter)
+            ->where(function ($q) {
+                // Cash orders: always visible
+                $q->where('payment_method', 'cash')
+                  // Mobile money: only after staff verifies
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                         ->where('payment_status', 'verified');
+                  });
+            })
+            ->with(['customer']);
 
-        // Search by order number
         if ($request->filled('search')) {
             $query->where('order_number', 'like', '%' . $request->search . '%');
         }
@@ -64,6 +66,11 @@ class OrderController extends Controller
             abort(403, 'Unauthorized.');
         }
 
+        $paymentOk = $order->payment_method === 'cash' || $order->payment_status === 'verified';
+        if (!$paymentOk) {
+            abort(403, 'Unauthorized.');
+        }
+
         $order->load(['customer', 'orderItems.service', 'payment']);
 
         return view('delivery.orders.show', compact('order'));
@@ -79,6 +86,11 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         if ($order->delivery_agent_id !== Auth::id()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $paymentOk = $order->payment_method === 'cash' || $order->payment_status === 'verified';
+        if (!$paymentOk) {
             abort(403, 'Unauthorized.');
         }
 

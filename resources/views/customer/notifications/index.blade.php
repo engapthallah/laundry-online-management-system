@@ -67,15 +67,24 @@
             @else
                 <div class="list-group">
                     @foreach($notifications as $notification)
-                        @php
-                            $icon = 'fa-bell text-primary';
-                            if ($notification->type === 'email') {
-                                $icon = 'fa-envelope text-success';
-                            } elseif ($notification->type === 'sms') {
-                                $icon = 'fa-sms text-warning';
-                            }
-                        @endphp
-                        <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm clickable-item position-relative"
+                        @if($notification->type === 'payment_rejected')
+                            <div class="alert alert-danger py-2 px-3 mb-2">
+                                <strong>{{ $notification->title }}</strong>
+                                <div class="small">{{ $notification->message }}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">
+                                    {{ $notification->created_at->diffForHumans() }}
+                                </div>
+                            </div>
+                        @else
+                            @php
+                                $icon = 'fa-bell text-primary';
+                                if ($notification->type === 'email') {
+                                    $icon = 'fa-envelope text-success';
+                                } elseif ($notification->type === 'sms') {
+                                    $icon = 'fa-sms text-warning';
+                                }
+                            @endphp
+                            <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm clickable-item position-relative"
                              style="background-color: {{ $notification->is_read ? '#ffffff' : '#e8f4fd' }}; border-left: {{ $notification->is_read ? '1px solid #dee2e6' : '4px solid #0d6efd' }} !important; cursor: pointer; transition: all 0.2s;"
                              onclick="event.target.tagName !== 'A' && event.target.tagName !== 'BUTTON' && event.target.closest('form') === null && document.getElementById('mark-read-form-{{ $notification->id }}').submit();">
                              
@@ -119,8 +128,9 @@
                                         </div>
                                     </div>
                                 </div>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     @endforeach
                 </div>
 

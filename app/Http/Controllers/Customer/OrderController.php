@@ -151,11 +151,15 @@ class OrderController extends Controller
                 $order->staff_id = $assignedStaff->id;
             }
 
-            // Auto-assign order to delivery agent using Round-Robin
-            $assignedAgent = app(\App\Services\DeliveryAssignmentService::class)->assignNextAgent();
-            if ($assignedAgent) {
-                $order->delivery_agent_id = $assignedAgent->id;
+            // Auto-assign delivery agent only for Cash orders.
+            // For Zaad/Edahab, delivery agent is assigned AFTER staff verifies payment.
+            if ($validated['payment_method'] === 'cash') {
+                $assignedAgent = app(\App\Services\DeliveryAssignmentService::class)->assignNextAgent();
+                if ($assignedAgent) {
+                    $order->delivery_agent_id = $assignedAgent->id;
+                }
             }
+            // Zaad/Edahab: delivery_agent_id remains null until payment is verified by staff
 
             $order->save();
 
@@ -182,6 +186,21 @@ class OrderController extends Controller
                 $payment->transaction_reference = 'MOBILEPAY-' . $validated['payment_phone'];
             }
             $payment->save();
+
+            // Determine payment_status based on method
+            if (in_array($validated['payment_method'], ['zaad', 'edahab'])) {
+                $order->payment_status = 'pending_verification';
+
+                // Save proof fields to payments table
+                $payment->wallet_phone = $request->input('wallet_phone');
+                $payment->sender_name  = $request->input('sender_name');
+                // Keep existing transaction_reference logic as-is
+                $payment->save();
+            } else {
+                // Cash — no verification needed, keep as 'pending'
+                $order->payment_status = 'pending';
+            }
+            $order->save();
 
             // Create notifications (customer system/email/SMS + admin alert)
             try {
@@ -231,5 +250,41 @@ class OrderController extends Controller
         \App\Services\NotificationService::orderStatusUpdated($order, 'cancelled');
 
         return redirect()->route('customer.orders.show', $order->id)->with('success', 'Order cancelled successfully.');
+    }
+
+    public function confirmPayment(Order $order)
+    {
+        // Ensure this order belongs to the authenticated customer
+        if ($order->customer_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Only allow confirmation on pending_verification orders
+        if ($order->payment_status !== 'pending_verification') {
+            return back()->with('error', 'This action is no longer available for this order.');
+        }
+
+        // Only for mobile payment orders
+        if (!in_array($order->payment_method, ['zaad', 'edahab'])) {
+            return back()->with('error', 'This action is only for mobile payment orders.');
+        }
+
+        // Customer confirms they have paid
+        $order->payment_status = 'awaiting_staff_review';
+        $order->save();
+
+        // Notify the customer
+        $order->customer->notifications()->create([
+            'order_id' => $order->id,
+            'title'    => 'Payment Confirmation Received',
+            'message'  => 'We have received your payment confirmation for Order #' 
+                          . $order->order_number 
+                          . '. Our staff will verify it shortly.',
+            'type'     => 'payment_pending_review',
+            'is_read'  => false,
+        ]);
+
+        return back()->with('success', 
+            'Thank you! Your payment confirmation has been sent to our staff for review.');
     }
 }

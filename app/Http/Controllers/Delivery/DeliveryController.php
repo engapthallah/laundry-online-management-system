@@ -41,6 +41,13 @@ class DeliveryController extends Controller
         // Base Query joining orders table to support search and sorting on delivery_time
         $query = DeliveryAssignment::where('delivery_agent_id', $agentId)
             ->join('orders', 'delivery_assignments.order_id', '=', 'orders.id')
+            ->where(function($q) {
+                $q->where('orders.payment_method', 'cash')
+                  ->orWhere(function($q2) {
+                      $q2->whereIn('orders.payment_method', ['zaad', 'edahab'])
+                         ->where('orders.payment_status', 'verified');
+                  });
+            })
             ->select('delivery_assignments.*')
             ->with(['order.customer']);
 
@@ -72,13 +79,16 @@ class DeliveryController extends Controller
         return view('delivery.deliveries.index', compact('assignments', 'tab'));
     }
 
-    /**
-     * Display the specified delivery assignment detail.
-     */
     public function show(DeliveryAssignment $assignment): View
     {
         // Ownership Check
         if ($assignment->delivery_agent_id !== Auth::id()) {
+            abort(403, 'This delivery is not assigned to you.');
+        }
+
+        $order = $assignment->order;
+        $paymentOk = $order->payment_method === 'cash' || $order->payment_status === 'verified';
+        if (!$paymentOk) {
             abort(403, 'This delivery is not assigned to you.');
         }
 
@@ -94,6 +104,12 @@ class DeliveryController extends Controller
     {
         // Ownership Check
         if ($assignment->delivery_agent_id !== Auth::id()) {
+            abort(403, 'This delivery is not assigned to you.');
+        }
+
+        $order = $assignment->order;
+        $paymentOk = $order->payment_method === 'cash' || $order->payment_status === 'verified';
+        if (!$paymentOk) {
             abort(403, 'This delivery is not assigned to you.');
         }
 

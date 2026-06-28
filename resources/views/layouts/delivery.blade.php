@@ -203,7 +203,17 @@
                 <i class="fa-solid fa-map-marker-alt"></i>
                 <span class="me-auto">Active Deliveries</span>
                 <span class="badge bg-white text-dark badge-count fw-bold">
-                    {{ Auth::user()->assignedDeliveryOrders()->whereIn('status', ['pending_pickup', 'picked_up_from_customer', 'ready_for_delivery', 'picked_up_from_laundry', 'on_the_way'])->count() }}
+                    {{ \App\Models\Order::where('delivery_agent_id', Auth::id())
+                        ->where(function($q) {
+                            $q->where('payment_method', 'cash')
+                              ->orWhere(function($q2) {
+                                  $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                                     ->where('payment_status', 'verified');
+                                  });
+                            })
+                        ->whereIn('status', ['pending_pickup','picked_up_from_customer',
+                                             'ready_for_delivery','picked_up_from_laundry','on_the_way'])
+                        ->count() }}
                 </span>
             </a>
 
@@ -276,7 +286,17 @@
                     <i class="fa-solid fa-map-marker-alt"></i>
                     <span class="me-auto">Active Deliveries</span>
                     <span class="badge bg-white text-dark badge-count fw-bold">
-                        {{ Auth::user()->assignedDeliveryOrders()->whereIn('status', ['pending_pickup', 'picked_up_from_customer', 'ready_for_delivery', 'picked_up_from_laundry', 'on_the_way'])->count() }}
+                        {{ \App\Models\Order::where('delivery_agent_id', Auth::id())
+                            ->where(function($q) {
+                                $q->where('payment_method', 'cash')
+                                  ->orWhere(function($q2) {
+                                      $q2->whereIn('payment_method', ['zaad', 'edahab'])
+                                         ->where('payment_status', 'verified');
+                                  });
+                            })
+                            ->whereIn('status', ['pending_pickup','picked_up_from_customer',
+                                                 'ready_for_delivery','picked_up_from_laundry','on_the_way'])
+                            ->count() }}
                     </span>
                 </a>
 

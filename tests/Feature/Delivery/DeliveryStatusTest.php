@@ -141,4 +141,76 @@ class DeliveryStatusTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_delivery_agent_visibility_rules()
+    {
+        $delivery = $this->createDelivery();
+        $customer = $this->createCustomer();
+
+        // 1. Zaad order with payment_status = pending_verification should NOT be visible
+        $unverifiedZaadOrder = $this->createOrder($customer, [
+            'delivery_agent_id' => $delivery->id,
+            'status' => 'pending_pickup',
+            'payment_method' => 'zaad',
+            'payment_status' => 'pending_verification',
+        ]);
+
+        // 2. Edahab order with payment_status = rejected should NOT be visible
+        $rejectedEdahabOrder = $this->createOrder($customer, [
+            'delivery_agent_id' => $delivery->id,
+            'status' => 'pending_pickup',
+            'payment_method' => 'edahab',
+            'payment_status' => 'rejected',
+        ]);
+
+        // 3. Cash order should be visible
+        $cashOrder = $this->createOrder($customer, [
+            'delivery_agent_id' => $delivery->id,
+            'status' => 'pending_pickup',
+            'payment_method' => 'cash',
+            'payment_status' => 'pending',
+        ]);
+
+        // 4. Zaad order with payment_status = verified should be visible
+        $verifiedZaadOrder = $this->createOrder($customer, [
+            'delivery_agent_id' => $delivery->id,
+            'status' => 'pending_pickup',
+            'payment_method' => 'zaad',
+            'payment_status' => 'verified',
+        ]);
+
+        $response = $this->actingAs($delivery)->get('/delivery/orders');
+
+        $response->assertStatus(200);
+        $response->assertDontSee($unverifiedZaadOrder->order_number);
+        $response->assertDontSee($rejectedEdahabOrder->order_number);
+        $response->assertSee($cashOrder->order_number);
+        $response->assertSee($verifiedZaadOrder->order_number);
+    }
+
+    public function test_delivery_agent_dashboard_and_show_route_rules()
+    {
+        $delivery = $this->createDelivery();
+        $customer = $this->createCustomer();
+
+        // 1. Zaad order with payment_status = pending_verification should NOT be in dashboard
+        $unverifiedZaadOrder = $this->createOrder($customer, [
+            'delivery_agent_id' => $delivery->id,
+            'status' => 'pending_pickup',
+            'payment_method' => 'zaad',
+            'payment_status' => 'pending_verification',
+        ]);
+
+        $response = $this->actingAs($delivery)->get('/delivery/dashboard');
+        $response->assertStatus(200);
+        $this->assertEquals(0, $response->viewData('totalAssigned'));
+        $this->assertEquals(0, $response->viewData('activeDeliveriesCount'));
+        $this->assertTrue($response->viewData('activeAssignments')->isEmpty());
+
+        // 2. Direct order detail access should be blocked
+        $responseShow = $this->actingAs($delivery)->get("/delivery/orders/{$unverifiedZaadOrder->id}");
+        $responseShow->assertStatus(403);
+    }
 }
+
+

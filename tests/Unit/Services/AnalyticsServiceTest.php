@@ -89,4 +89,35 @@ class AnalyticsServiceTest extends TestCase
         $this->assertEquals(1, $stats['delivered']);
         $this->assertEquals(0, $stats['cancelled']);
     }
+
+    public function test_delivery_performance_returns_correct_metrics()
+    {
+        $deliveryAgent = $this->createDelivery();
+        $customer = $this->createCustomer();
+        $order = $this->createOrder($customer, [
+            'delivery_agent_id' => $deliveryAgent->id,
+            'status' => 'delivered',
+            'delivery_time' => Carbon::now()->addDay(),
+        ]);
+
+        $assignment = \App\Models\DeliveryAssignment::create([
+            'order_id' => $order->id,
+            'delivery_agent_id' => $deliveryAgent->id,
+            'status' => 'delivered',
+            'assigned_at' => Carbon::now()->subHour(),
+            'delivered_at' => Carbon::now(),
+        ]);
+
+        $start = Carbon::now()->subDays(2)->startOfDay();
+        $end = Carbon::now()->addDays(2)->endOfDay();
+
+        $performance = AnalyticsService::getDeliveryPerformance($start, $end);
+
+        $this->assertNotEmpty($performance);
+        $this->assertEquals($deliveryAgent->name, $performance[0]['name']);
+        $this->assertEquals(1, $performance[0]['total_assigned']);
+        $this->assertEquals(1, $performance[0]['total_delivered']);
+        $this->assertEquals(100.0, $performance[0]['delivery_rate']);
+        $this->assertEquals(100.0, $performance[0]['on_time_rate']);
+    }
 }
