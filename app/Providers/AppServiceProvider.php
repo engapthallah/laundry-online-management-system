@@ -24,5 +24,8 @@ class AppServiceProvider extends ServiceProvider
             $view->with('unreadMessagesCount', $unreadMessagesCount);
         });
 
+        if (config('app.env') === 'production') {
+        \Illuminate\Support\Facades\URL::forceScheme('https');
+}
     }
 }
