@@ -1,0 +1,32 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-tn0RQdqM.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/css/customer-order.css": {
+    "file": "assets/customer-order-3JcZXhvu.css",
+    "src": "resources/css/customer-order.css",
+    "isEntry": true,
+    "name": "customer-order",
+    "names": [
+      "customer-order.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DsbP9Jus.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/customer-order.js": {
+    "file": "assets/customer-order-CZbqRdg-.js",
+    "name": "customer-order",
+    "src": "resources/js/customer-order.js",
+    "isEntry": true
+  }
+}
