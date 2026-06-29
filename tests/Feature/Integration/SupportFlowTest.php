@@ -130,4 +130,80 @@ class SupportFlowTest extends TestCase
 
         $response->assertRedirect(route('contact.create'));
     }
+
+    public function test_staff_can_view_support_messages_index()
+    {
+        $staff = $this->createStaff();
+        $message = SupportMessage::create([
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'subject' => 'Mismatched clothes staff test',
+            'message' => 'I got a shirt that does not belong to me.',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($staff)->get('/staff/support');
+
+        $response->assertStatus(200);
+        $response->assertSee('Mismatched clothes staff test');
+        $response->assertSee('Awaiting Reply');
+    }
+
+    public function test_staff_can_reply_to_support_message()
+    {
+        $staff = $this->createStaff();
+        $customer = $this->createCustomer();
+        $message = SupportMessage::create([
+            'user_id' => $customer->id,
+            'name' => $customer->name,
+            'email' => $customer->email,
+            'subject' => 'Mismatched clothes staff reply test',
+            'message' => 'I got a shirt that does not belong to me.',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($staff)->post("/staff/support/{$message->id}/reply", [
+            'reply_content' => 'Thank you for contacting us. Staff is resolving this.',
+        ]);
+
+        $this->assertEquals('Thank you for contacting us. Staff is resolving this.', $message->fresh()->admin_reply);
+        $this->assertEquals('resolved', $message->fresh()->status);
+        $this->assertNotNull($message->fresh()->replied_at);
+
+        // Assert notification created for customer
+        $this->assertTrue(Notification::where('user_id', $customer->id)
+            ->where('title', 'like', '%Support Reply%')
+            ->exists());
+
+        $response->assertRedirect(route('staff.support.index'));
+    }
+
+    public function test_staff_cannot_reply_with_empty_content()
+    {
+        $staff = $this->createStaff();
+        $message = SupportMessage::create([
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'subject' => 'Mismatched clothes empty test',
+            'message' => 'I got a shirt that does not belong to me.',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($staff)->post("/staff/support/{$message->id}/reply", [
+            'reply_content' => '',
+        ]);
+
+        $response->assertSessionHasErrors('reply_content');
+        $this->assertEquals('pending', $message->fresh()->status);
+    }
+
+    public function test_staff_blocked_from_admin_support()
+    {
+        $staff = $this->createStaff();
+
+        $response = $this->actingAs($staff)->get('/admin/support');
+
+        // Staff should be redirected away from admin area
+        $response->assertRedirect(route('dashboard'));
+    }
 }

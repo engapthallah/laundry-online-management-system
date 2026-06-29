@@ -207,6 +207,19 @@
                 </span>
             </a>
 
+            @php
+                $pendingSupportCount = \App\Models\SupportMessage::where('status', 'pending')->count();
+            @endphp
+            <a href="{{ route('staff.support.index') }}" class="sidebar-link {{ request()->routeIs('staff.support.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-headset"></i>
+                <span class="me-auto">Support Messages</span>
+                @if($pendingSupportCount > 0)
+                    <span class="badge bg-danger badge-count text-white">
+                        {{ $pendingSupportCount }}
+                    </span>
+                @endif
+            </a>
+
             <div class="sidebar-heading">Account & System</div>
 
             <a href="{{ route('staff.notifications.index') }}" class="sidebar-link {{ request()->routeIs('staff.notifications.index') ? 'active' : '' }}">
@@ -273,6 +286,16 @@
                     <span class="badge bg-warning text-dark badge-count">
                         {{ \App\Models\Order::where('staff_id', Auth::id())->whereIn('status', ['delivered_to_laundry', 'processing'])->count() }}
                     </span>
+                </a>
+
+                <a href="{{ route('staff.support.index') }}" class="sidebar-link {{ request()->routeIs('staff.support.*') ? 'active' : '' }}" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide();">
+                    <i class="fa-solid fa-headset"></i>
+                    <span class="me-auto">Support Messages</span>
+                    @if($pendingSupportCount > 0)
+                        <span class="badge bg-danger badge-count text-white">
+                            {{ $pendingSupportCount }}
+                        </span>
+                    @endif
                 </a>
 
                 <div class="sidebar-heading">Account & System</div>

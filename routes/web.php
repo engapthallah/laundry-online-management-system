@@ -168,6 +168,11 @@ Route::prefix('staff')->middleware(['auth', 'staff'])->name('staff.')->group(fun
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [\App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('profile.update');
+
+    // Support Messages
+    Route::get('/support', [\App\Http\Controllers\Staff\SupportController::class, 'index'])->name('support.index');
+    Route::get('/support/{id}', [\App\Http\Controllers\Staff\SupportController::class, 'show'])->name('support.show');
+    Route::post('/support/{id}/reply', [\App\Http\Controllers\Staff\SupportController::class, 'reply'])->name('support.reply');
 });
 
 // Delivery route group
