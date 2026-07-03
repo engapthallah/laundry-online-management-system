@@ -120,20 +120,11 @@
 <div class="alert alert-danger mt-3">
     <h6 class="fw-bold">❌ Payment Rejected</h6>
     <p class="mb-3">
-        Your payment could not be verified. Please cancel this order or contact support.
+        Your payment could not be verified and the order has been cancelled. If you have questions, please contact support.
     </p>
     <div class="d-flex gap-3 flex-wrap">
-        <form method="POST"
-              action="{{ route('customer.orders.cancel', $order->id) }}">
-            @csrf
-            @method('PATCH')
-            <button type="submit" class="btn btn-outline-danger"
-                    onclick="return confirm('Cancel this order?')">
-                🗑 Cancel Order
-            </button>
-        </form>
         <a href="{{ route('customer.support.create', ['order_id' => $order->id]) }}"
-           class="btn btn-outline-primary">
+           class="btn btn-outline-danger">
             💬 Contact Support
         </a>
     </div>

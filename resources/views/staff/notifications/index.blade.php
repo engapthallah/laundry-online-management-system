@@ -46,11 +46,6 @@
                 Email
             </a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link fw-semibold {{ request('filter') === 'sms' ? 'active text-primary' : 'text-secondary' }}" href="{{ route('staff.notifications.index', ['filter' => 'sms']) }}">
-                SMS
-            </a>
-        </li>
     </ul>
 
     <!-- Notifications List -->
@@ -71,8 +66,6 @@
                             $icon = 'fa-bell text-primary';
                             if ($notification->type === 'email') {
                                 $icon = 'fa-envelope text-success';
-                            } elseif ($notification->type === 'sms') {
-                                $icon = 'fa-sms text-warning';
                             }
                         @endphp
                         <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm clickable-item position-relative"

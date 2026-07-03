@@ -6,15 +6,22 @@
 **URL:** http://127.0.0.1:8000
 
 ## 1. Authentication
-- [ ] Login as admin@loms.com redirects to `/admin/dashboard`
-- [ ] Unauthorized guest attempt on `/admin/dashboard` redirects to `/login`
-- [ ] Non-admin user attempt on `/admin/dashboard` is blocked with 403 or redirected
+- [ ] Login as admin@loms.com redirects to `/admin/analytics`
+- [ ] Unauthorized guest attempt on `/admin/analytics` redirects to `/login`
+- [ ] Non-admin user attempt on `/admin/analytics` is blocked with 403 or redirected
 
-## 2. Admin Dashboard
-- [ ] All 8 KPI cards visible and populated
-- [ ] Charts render correctly (Chart.js)
-- [ ] Recent orders table shows last 5 orders
-- [ ] Recent support messages table shows last 5 messages
+## 2. Analytics Dashboard
+- [ ] Page loads with current month data
+- [ ] All period filters (today, last 7 days, last 30 days, this month, custom) work
+- [ ] Custom date range works correctly
+- [ ] All 9 charts render correctly
+- [ ] KPI trend indicators show correctly (up/down arrows)
+- [ ] Staff performance table shows correctly
+- [ ] Delivery performance table shows correctly
+- [ ] Recent orders table shows last 5 orders at the bottom of the page
+- [ ] Recent support tickets table shows last 5 support tickets at the bottom of the page
+- [ ] Export CSV downloads correctly
+- [ ] Print page loads cleanly without sidebar
 
 ## 3. User Management
 - [ ] View users list with pagination
@@ -62,14 +69,3 @@
 - [ ] Filter by star rating works
 - [ ] View review detail panel
 - [ ] Delete review with modal confirmation
-
-## 9. Analytics Dashboard
-- [ ] Page loads with current month data
-- [ ] All period filters (today, last 7 days, last 30 days, this month, custom) work
-- [ ] Custom date range works correctly
-- [ ] All 9 charts render correctly
-- [ ] KPI trend indicators show correctly (up/down arrows)
-- [ ] Staff performance table shows correctly
-- [ ] Delivery performance table shows correctly
-- [ ] Export CSV downloads correctly
-- [ ] Print page loads cleanly without sidebar

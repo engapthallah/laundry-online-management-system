@@ -206,7 +206,7 @@ class OrderController extends Controller
             }
             $order->save();
 
-            // Create notifications (customer system/email/SMS + admin alert)
+            // Create notifications (customer system/email + admin alert)
             try {
                 \App\Services\NotificationService::orderPlaced($order);
             } catch (\Exception $e) {

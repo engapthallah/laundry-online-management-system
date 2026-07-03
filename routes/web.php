@@ -21,7 +21,7 @@ Route::get('/dashboard', function () {
     $user = auth()->user();
     
     if ($user->isAdmin()) {
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.analytics.index');
     }
     if ($user->isStaff()) {
         return redirect()->route('staff.dashboard');
@@ -30,7 +30,7 @@ Route::get('/dashboard', function () {
         return redirect()->route('delivery.dashboard');
     }
     if ($user->isCustomer()) {
-        return redirect()->route('customer.dashboard');
+        return redirect()->route('home');
     }
     
     return redirect()->route('home');
@@ -38,7 +38,6 @@ Route::get('/dashboard', function () {
 
 // Admin routes
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
     Route::patch('users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggleStatus');
     Route::resource('services', \App\Http\Controllers\Admin\ServiceController::class);
@@ -205,8 +204,6 @@ Route::middleware(['auth', 'delivery'])
 
 // Customer routes
 Route::prefix('customer')->middleware(['auth', 'customer'])->name('customer.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
-
     // Orders
     Route::resource('orders', \App\Http\Controllers\Customer\OrderController::class)->only(['index', 'create', 'store', 'show']);
     Route::match(['post', 'patch'], 'orders/{order}/cancel', [\App\Http\Controllers\Customer\OrderController::class, 'cancel'])->name('orders.cancel');

@@ -87,4 +87,88 @@ class NotificationServiceTest extends TestCase
         $this->assertNotNull($notification);
         $this->assertStringContainsString('cleaning', $notification->message);
     }
+
+    public function test_send_whatsapp_notification_ready_for_delivery()
+    {
+        \Illuminate\Support\Facades\Http::fake();
+        \Illuminate\Support\Facades\Queue::fake();
+        config([
+            'services.callmebot.apikey' => 'test-key',
+            'services.callmebot.phone' => '252637205471',
+        ]);
+
+        $customer = $this->createCustomer(['phone' => '+252633336664']);
+        $order = $this->createOrder($customer, ['status' => 'processing']);
+
+        NotificationService::orderStatusUpdated($order, 'ready_for_delivery');
+
+        // Verify the job was pushed
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SendWhatsAppNotificationJob::class);
+
+        // Verify the customer email was sent
+        Mail::assertSent(\App\Mail\OrderReadyForDeliveryMail::class, function ($mail) use ($customer, $order) {
+            return $mail->order->id === $order->id;
+        });
+
+        // Run the call to test the HTTP request directly
+        NotificationService::sendWhatsAppNotification($customer, $order, 'ready_for_delivery');
+
+        \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'api.callmebot.com/whatsapp.php') &&
+                $request['phone'] === '252637205471' && // Recipient is owner, not customer
+                str_contains($request['text'], 'Order Ready for Delivery') &&
+                $request['apikey'] === 'test-key';
+        });
+    }
+
+    public function test_send_whatsapp_notification_delivered()
+    {
+        \Illuminate\Support\Facades\Http::fake();
+        \Illuminate\Support\Facades\Queue::fake();
+        config([
+            'services.callmebot.apikey' => 'test-key',
+            'services.callmebot.phone' => '252637205471',
+        ]);
+
+        $customer = $this->createCustomer(['phone' => '+252633336664']);
+        $order = $this->createOrder($customer, ['status' => 'ready_for_delivery']);
+
+        NotificationService::orderStatusUpdated($order, 'delivered');
+
+        // Verify the job was pushed
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SendWhatsAppNotificationJob::class);
+
+        // Verify the customer email was sent
+        Mail::assertSent(\App\Mail\OrderDeliveredMail::class, function ($mail) use ($customer, $order) {
+            return $mail->order->id === $order->id;
+        });
+
+        // Run the call directly
+        NotificationService::sendWhatsAppNotification($customer, $order, 'delivered');
+
+        \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'api.callmebot.com/whatsapp.php') &&
+                $request['phone'] === '252637205471' && // Recipient is owner, not customer
+                str_contains($request['text'], 'Order Delivered') &&
+                $request['apikey'] === 'test-key';
+        });
+    }
+
+    public function test_send_whatsapp_notification_handles_failure_without_throwing()
+    {
+        \Illuminate\Support\Facades\Http::fake([
+            'api.callmebot.com/*' => \Illuminate\Support\Facades\Http::response('Error', 500),
+        ]);
+        config([
+            'services.callmebot.apikey' => 'test-key',
+            'services.callmebot.phone' => '252637205471',
+        ]);
+
+        $customer = $this->createCustomer(['phone' => '+252633336664']);
+        $order = $this->createOrder($customer);
+
+        // This should run without throwing any exceptions
+        $result = NotificationService::sendWhatsAppNotification($customer, $order, 'ready_for_delivery');
+        $this->assertFalse($result);
+    }
 }

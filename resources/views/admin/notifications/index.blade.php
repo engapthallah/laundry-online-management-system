@@ -46,11 +46,6 @@
                 Email
             </a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link fw-semibold {{ request('filter') === 'sms' ? 'active text-primary' : 'text-secondary' }}" href="{{ route('admin.notifications.index', ['filter' => 'sms']) }}">
-                SMS
-            </a>
-        </li>
     </ul>
 
     <!-- Notifications List -->
@@ -71,8 +66,6 @@
                             $icon = 'fa-bell text-primary';
                             if ($notification->type === 'email') {
                                 $icon = 'fa-envelope text-success';
-                            } elseif ($notification->type === 'sms') {
-                                $icon = 'fa-sms text-warning';
                             }
                             // Only clickable to mark read if it belongs to this admin
                             $isMine = ($notification->user_id === Auth::id());

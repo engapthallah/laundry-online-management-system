@@ -18,7 +18,7 @@
             <h1 class="h2 fw-bold text-dark mb-1">Review Details</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.analytics.index') }}">Analytics</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.reviews.index') }}">Reviews</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Details</li>
                 </ol>

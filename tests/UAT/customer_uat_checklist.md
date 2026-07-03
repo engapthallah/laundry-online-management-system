@@ -12,14 +12,14 @@
 - [ ] Register with weak password — error shown
 - [ ] Visit `/login` — form loads
 - [ ] Login with wrong password — error shown
-- [ ] Login with correct credentials — redirect to dashboard
+- [ ] Login with correct credentials — redirect to home page (`/`)
 - [ ] Logout — redirect to home page
 
-## 2. Customer Dashboard
-- [ ] Dashboard loads with 4 stat cards
-- [ ] Stats show correct numbers
-- [ ] Quick action buttons visible
-- [ ] Recent orders table shown (if orders exist)
+## 2. Customer Landing Page & Dashboard Removal
+- [ ] Direct navigation to `/customer/dashboard` returns a 404 page
+- [ ] Nav bar "Welcome back" dropdown contains no "Dashboard" option
+- [ ] Navigation to `/` (home page) displays "Our Track Record" correctly
+- [ ] Customer can navigate to My Orders, Support, Profile, and Logout from the dropdown
 
 ## 3. Place New Order
 - [ ] Visit `/customer/orders/create` — form loads

@@ -16,6 +16,8 @@ use App\Services\DeliveryAssignmentService;
 
 class OrderController extends Controller
 {
+    use HasStaffOrderFilters;
+
     /**
      * Display a listing of assigned orders with search, status filtering, date filters, and header sorting.
      */
@@ -32,28 +34,7 @@ class OrderController extends Controller
             ])
             ->with(['customer', 'orderItems.service']);
 
-        // Search by order number
-        if ($request->filled('search')) {
-            $query->where('order_number', 'like', '%' . $request->search . '%');
-        }
-
-        // Filter by status (including "active" status parameter from sidebar link)
-        if ($request->filled('status')) {
-            $status = $request->status;
-            if ($status === 'active') {
-                $query->whereIn('status', ['delivered_to_laundry', 'processing']);
-            } else {
-                $query->where('status', $status);
-            }
-        }
-
-        // Filter by date range (pickup_time)
-        if ($request->filled('date_from')) {
-            $query->whereDate('pickup_time', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('pickup_time', '<=', $request->date_to);
-        }
+        $query = $this->applyOrderFilters($query, $request);
 
         // Sorting configuration
         $sortBy = $request->get('sort_by', 'updated_at');
@@ -178,7 +159,7 @@ class OrderController extends Controller
                 'title'    => 'Payment Verified ✅',
                 'message'  => 'Your payment for Order #' . $order->order_number 
                               . ' has been verified. Your laundry is being processed.',
-                'type'     => 'payment_verified',
+                'type'     => 'system',
                 'is_read'  => false,
             ]);
         }
@@ -209,8 +190,9 @@ class OrderController extends Controller
             return back()->with('error', 'This payment has already been processed.');
         }
 
-        // Update order payment_status to rejected
+        // Update order payment_status to rejected and status to cancelled
         $order->payment_status = 'rejected';
+        $order->status = 'cancelled';
         $order->save();
 
         // Update payment record
@@ -221,18 +203,9 @@ class OrderController extends Controller
             $order->payment->save();
         }
 
-        // Send notification to customer
-        $customer = $order->customer;
-        if ($customer) {
-            $customer->notifications()->create([
-                'order_id' => $order->id,
-                'title'    => 'Payment Rejected',
-                'message'  => 'Your payment for Order #' . $order->order_number . ' could not be verified. Please contact us or cancel your order.',
-                'type'     => 'payment_rejected',
-                'is_read'  => false,
-            ]);
-        }
+        // Trigger notification pipeline (System + Email)
+        \App\Services\NotificationService::orderStatusUpdated($order, 'cancelled');
 
-        return back()->with('success', 'Payment rejected. Customer has been notified.');
+        return back()->with('success', 'Payment rejected and order has been cancelled. Customer has been notified.');
     }
 }

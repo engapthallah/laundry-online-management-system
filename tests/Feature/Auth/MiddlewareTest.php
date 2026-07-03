@@ -9,16 +9,16 @@ class MiddlewareTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_cannot_access_admin_dashboard()
+    public function test_guest_cannot_access_admin_analytics()
     {
-        $response = $this->get('/admin/dashboard');
+        $response = $this->get('/admin/analytics');
 
         $response->assertRedirect('/login');
     }
 
-    public function test_guest_cannot_access_customer_dashboard()
+    public function test_guest_cannot_access_customer_routes()
     {
-        $response = $this->get('/customer/dashboard');
+        $response = $this->get('/customer/orders');
 
         $response->assertRedirect('/login');
     }
@@ -41,7 +41,7 @@ class MiddlewareTest extends TestCase
     {
         $customer = $this->createCustomer();
 
-        $response = $this->actingAs($customer)->get('/admin/dashboard');
+        $response = $this->actingAs($customer)->get('/admin/analytics');
 
         $response->assertRedirect('/dashboard');
     }
@@ -64,11 +64,11 @@ class MiddlewareTest extends TestCase
         $response->assertRedirect('/dashboard');
     }
 
-    public function test_admin_cannot_access_customer_dashboard()
+    public function test_admin_cannot_access_customer_routes()
     {
         $admin = $this->createAdmin();
 
-        $response = $this->actingAs($admin)->get('/customer/dashboard');
+        $response = $this->actingAs($admin)->get('/customer/orders');
 
         $response->assertRedirect('/dashboard');
     }
@@ -77,7 +77,7 @@ class MiddlewareTest extends TestCase
     {
         $staff = $this->createStaff();
 
-        $response = $this->actingAs($staff)->get('/admin/dashboard');
+        $response = $this->actingAs($staff)->get('/admin/analytics');
 
         $response->assertRedirect('/dashboard');
     }
@@ -95,25 +95,25 @@ class MiddlewareTest extends TestCase
     {
         $delivery = $this->createDelivery();
 
-        $response = $this->actingAs($delivery)->get('/admin/dashboard');
+        $response = $this->actingAs($delivery)->get('/admin/analytics');
 
         $response->assertRedirect('/dashboard');
     }
 
-    public function test_admin_can_access_admin_dashboard()
+    public function test_admin_can_access_admin_analytics()
     {
         $admin = $this->createAdmin();
 
-        $response = $this->actingAs($admin)->get('/admin/dashboard');
+        $response = $this->actingAs($admin)->get('/admin/analytics');
 
         $response->assertStatus(200);
     }
 
-    public function test_customer_can_access_customer_dashboard()
+    public function test_customer_can_access_customer_routes()
     {
         $customer = $this->createCustomer();
 
-        $response = $this->actingAs($customer)->get('/customer/dashboard');
+        $response = $this->actingAs($customer)->get('/customer/orders');
 
         $response->assertStatus(200);
     }

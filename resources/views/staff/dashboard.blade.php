@@ -115,16 +115,78 @@
     <div class="col-12 col-xl-8">
         <div class="card border-0 shadow-sm rounded-3 bg-white p-4 h-100">
             <div class="d-flex align-items-center justify-content-between mb-4">
-                <h5 class="fw-bold text-dark mb-0">Recent Active Orders</h5>
-                <a href="{{ route('staff.orders.index', ['status' => 'active']) }}" class="btn btn-sm btn-outline-primary fw-semibold">
-                    View All Active
-                </a>
+                <h5 class="fw-bold text-dark mb-0">
+                    {{ request()->anyFilled(['search', 'status', 'date_from', 'date_to']) ? 'Filtered Assigned Orders' : 'Recent Active Orders' }}
+                </h5>
+                @if(!request()->anyFilled(['search', 'status', 'date_from', 'date_to']))
+                    <a href="{{ route('staff.orders.index', ['status' => 'active']) }}" class="btn btn-sm btn-outline-primary fw-semibold">
+                        View All Active
+                    </a>
+                @endif
+            </div>
+
+            <!-- Filters Panel -->
+            <div class="mb-4 p-3 bg-light rounded-3">
+                <form method="GET" action="{{ route('staff.dashboard') }}" class="row g-3">
+                    <!-- Order Number Search -->
+                    <div class="col-12 col-md-3">
+                        <label for="search" class="form-label fw-semibold text-secondary small">Search Order No.</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" class="form-control bg-white border-start-0" id="search" name="search" placeholder="e.g. LOMS-1002" value="{{ request('search') }}">
+                        </div>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="col-12 col-md-3">
+                        <label for="status" class="form-label fw-semibold text-secondary small">Filter Status</label>
+                        <select class="form-select bg-white" id="status" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Processes (Confirmed-Processing)</option>
+                            <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                            <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="ready_for_delivery" {{ request('status') === 'ready_for_delivery' ? 'selected' : '' }}>Ready for Delivery</option>
+                        </select>
+                    </div>
+
+                    <!-- Date From Filter -->
+                    <div class="col-12 col-md-2">
+                        <label for="date_from" class="form-label fw-semibold text-secondary small">Pickup From</label>
+                        <input type="date" class="form-control bg-white" id="date_from" name="date_from" value="{{ request('date_from') }}">
+                    </div>
+
+                    <!-- Date To Filter -->
+                    <div class="col-12 col-md-2">
+                        <label for="date_to" class="form-label fw-semibold text-secondary small">Pickup To</label>
+                        <input type="date" class="form-control bg-white" id="date_to" name="date_to" value="{{ request('date_to') }}">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                            Filter
+                        </button>
+                        @if(request()->anyFilled(['search', 'status', 'date_from', 'date_to']))
+                            <a href="{{ route('staff.dashboard') }}" class="btn btn-outline-secondary w-100 fw-semibold" title="Clear Filters">
+                                Clear
+                            </a>
+                        @endif
+                    </div>
+                </form>
             </div>
 
             @if($activeOrders->isEmpty())
                 <div class="text-center py-5">
-                    <i class="fa-solid fa-circle-check text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h6 class="text-secondary fw-semibold">No active orders assigned to you at the moment.</h6>
+                    @if(request()->anyFilled(['search', 'status', 'date_from', 'date_to']))
+                        <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
+                            <i class="fa-solid fa-soap text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="text-dark fw-bold mb-1">No Orders Found</h5>
+                        <p class="text-secondary mb-0">No orders match your search/filter.</p>
+                    @else
+                        <i class="fa-solid fa-circle-check text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h6 class="text-secondary fw-semibold">No active orders assigned to you at the moment.</h6>
+                    @endif
                 </div>
             @else
                 <div class="row g-3">

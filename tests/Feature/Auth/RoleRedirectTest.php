@@ -13,14 +13,14 @@ class RoleRedirectTest extends TestCase
     {
         $admin = $this->createAdmin();
         $response = $this->actingAs($admin)->get('/dashboard');
-        $response->assertRedirect('/admin/dashboard');
+        $response->assertRedirect('/admin/analytics');
     }
 
     public function test_customer_dashboard_redirect()
     {
         $customer = $this->createCustomer();
         $response = $this->actingAs($customer)->get('/dashboard');
-        $response->assertRedirect('/customer/dashboard');
+        $response->assertRedirect('/');
     }
 
     public function test_staff_dashboard_redirect()

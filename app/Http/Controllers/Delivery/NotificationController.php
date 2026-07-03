@@ -23,7 +23,7 @@ class NotificationController extends Controller
         $filter = $request->get('filter');
         if ($filter === 'unread') {
             $query->where('is_read', false);
-        } elseif (in_array($filter, ['system', 'email', 'sms'])) {
+        } elseif (in_array($filter, ['system', 'email'])) {
             $query->where('type', $filter);
         }
 

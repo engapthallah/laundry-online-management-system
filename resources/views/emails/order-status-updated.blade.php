@@ -16,6 +16,9 @@ Your order status has been updated.
         'cancelled'               => "Your order has been cancelled. Contact support if this was an error.",
     ];
     $messageText = $statusMessages[$status] ?? "Your order status has been updated.";
+    if ($status === 'cancelled' && $order->payment_status === 'rejected') {
+        $messageText = "Your payment for Order #{$order->order_number} could not be verified and the order has been cancelled.";
+    }
     $statusLabel = ucwords(str_replace('_', ' ', $status));
 @endphp
 

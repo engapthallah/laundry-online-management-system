@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    use HasStaffOrderFilters;
+
     /**
      * Display the staff dashboard.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $staffId = Auth::id();
 
@@ -38,13 +40,30 @@ class DashboardController extends Controller
             ->whereDate('updated_at', Carbon::today())
             ->count();
 
-        // 5. Up to 8 most recent active orders
-        $activeOrders = Order::where('staff_id', $staffId)
-            ->whereIn('status', ['delivered_to_laundry', 'processing'])
-            ->with(['customer', 'orderItems.service'])
-            ->orderBy('created_at', 'desc')
-            ->limit(8)
-            ->get();
+        // 5. Active orders (Recent default vs full filtered)
+        $isFiltered = $request->anyFilled(['search', 'status', 'date_from', 'date_to']);
+
+        if ($isFiltered) {
+            $query = Order::where('staff_id', $staffId)
+                ->whereIn('status', [
+                    'pending_pickup',
+                    'picked_up_from_customer',
+                    'delivered_to_laundry',
+                    'processing',
+                    'ready_for_delivery',
+                ])
+                ->with(['customer', 'orderItems.service']);
+
+            $query = $this->applyOrderFilters($query, $request);
+            $activeOrders = $query->orderBy('updated_at', 'desc')->get();
+        } else {
+            $activeOrders = Order::where('staff_id', $staffId)
+                ->whereIn('status', ['delivered_to_laundry', 'processing'])
+                ->with(['customer', 'orderItems.service'])
+                ->orderBy('created_at', 'desc')
+                ->limit(8)
+                ->get();
+        }
 
         // 6. Quick Summary Chart data (statuses with at least 1 order)
         $statusCountsQuery = Order::where('staff_id', $staffId)

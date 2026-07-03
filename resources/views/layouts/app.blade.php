@@ -54,8 +54,8 @@
                     <ul class="nav flex-column px-2">
                         @if(Auth::user()->isAdmin())
                             <li class="nav-item mb-2">
-                                <a class="nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'bg-primary rounded fw-semibold' : 'text-white-50' }} px-3 py-2 d-flex align-items-center" href="{{ route('admin.dashboard') }}">
-                                    <i class="fa-solid fa-chart-line me-2"></i>Admin Dashboard
+                                <a class="nav-link text-white {{ request()->routeIs('admin.analytics.index') ? 'bg-primary rounded fw-semibold' : 'text-white-50' }} px-3 py-2 d-flex align-items-center" href="{{ route('admin.analytics.index') }}">
+                                    <i class="fa-solid fa-chart-line me-2"></i>Admin Analytics
                                 </a>
                             </li>
                             <li class="nav-item mb-2">
@@ -106,11 +106,6 @@
                                 </a>
                             </li>
                         @elseif(Auth::user()->isCustomer())
-                            <li class="nav-item mb-2">
-                                <a class="nav-link text-white {{ request()->routeIs('customer.dashboard') ? 'bg-primary rounded fw-semibold' : 'text-white-50' }} px-3 py-2 d-flex align-items-center" href="{{ route('customer.dashboard') }}">
-                                    <i class="fa-solid fa-chart-line me-2"></i>Customer Dashboard
-                                </a>
-                            </li>
                             <li class="nav-item mb-2">
                                 <a class="nav-link text-white text-white-50 px-3 py-2 d-flex align-items-center" href="#">
                                     <i class="fa-solid fa-basket-shopping me-2"></i>New Order

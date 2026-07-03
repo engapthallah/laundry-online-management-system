@@ -29,7 +29,7 @@ class LoginTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect('/customer/dashboard');
+        $response->assertRedirect('/');
     }
 
     public function test_user_cannot_login_with_wrong_password()
@@ -63,7 +63,7 @@ class LoginTest extends TestCase
         $response->assertSessionHasErrors(['email']);
     }
 
-    public function test_login_redirects_admin_to_admin_dashboard()
+    public function test_login_redirects_admin_to_admin_analytics()
     {
         $admin = $this->createAdmin([
             'email' => 'admin@loms.com',
@@ -74,7 +74,7 @@ class LoginTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertEquals(url('/admin/dashboard'), url()->current());
+        $this->assertEquals(url('/admin/analytics'), url()->current());
     }
 
     public function test_login_redirects_customer_to_customer_dashboard()
@@ -88,7 +88,7 @@ class LoginTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertEquals(url('/customer/dashboard'), url()->current());
+        $this->assertEquals(url('/'), url()->current());
     }
 
     public function test_login_redirects_staff_to_staff_dashboard()

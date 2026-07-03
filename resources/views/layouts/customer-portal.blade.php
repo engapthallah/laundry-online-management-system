@@ -296,7 +296,7 @@
                                 <div class="user-avatar">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                                 </div>
-                                {{ explode(' ', Auth::user()->name)[0] }}
+                                Welcome back, {{ explode(' ', Auth::user()->name)[0] }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="min-width:220px; border-radius:12px;">
                                 <li class="px-3 py-2 border-bottom">
@@ -393,7 +393,7 @@
             <div class="d-flex flex-column gap-2 pt-3 border-top">
                 @auth
                     <div class="mb-3">
-                        <div class="fw-600 text-dark small">{{ Auth::user()->name }}</div>
+                        <div class="fw-600 text-dark small">Welcome back, {{ Auth::user()->name }}</div>
                         <div class="text-muted" style="font-size:0.8rem">{{ Auth::user()->email }}</div>
                     </div>
                     <a class="nav-link-custom py-2" href="{{ route('customer.orders.index') }}">

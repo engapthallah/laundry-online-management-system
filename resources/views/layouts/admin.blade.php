@@ -25,7 +25,7 @@
                 <i class="fa-solid fa-bars fs-5"></i>
             </button>
             
-            <a class="navbar-brand d-flex align-items-center fw-bold fs-4" href="{{ route('admin.dashboard') }}">
+            <a class="navbar-brand d-flex align-items-center fw-bold fs-4" href="{{ route('admin.analytics.index') }}">
                 <i class="fa-solid fa-soap me-2"></i>LOMS Admin
             </a>
 
@@ -118,11 +118,7 @@
                 <div class="p-3">
                     <div class="mb-3 px-3 text-muted text-uppercase fw-semibold small tracking-wider">Control Panel</div>
                     <ul class="nav nav-pills flex-column mb-auto">
-                        <li class="nav-item mb-2">
-                            <a class="nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active bg-primary' : 'text-white-50 hover-bg-secondary' }} px-3 py-2.5 d-flex align-items-center gap-3" href="{{ route('admin.dashboard') }}">
-                                <i class="fa-solid fa-tachometer-alt"></i>Dashboard
-                            </a>
-                        </li>
+
                         <li class="nav-item mb-2">
                             <a class="nav-link text-white {{ request()->routeIs('admin.analytics*') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3" href="{{ route('admin.analytics.index') }}">
                                 <i class="fas fa-chart-bar"></i>Analytics
@@ -194,11 +190,7 @@
                 <div class="offcanvas-body p-3">
                     <div class="mb-3 px-3 text-muted text-uppercase fw-semibold small tracking-wider">Control Panel</div>
                     <ul class="nav nav-pills flex-column mb-auto">
-                        <li class="nav-item mb-2">
-                            <a class="nav-link text-white {{ request()->routeIs('admin.dashboard') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3" href="{{ route('admin.dashboard') }}">
-                                <i class="fa-solid fa-tachometer-alt"></i>Dashboard
-                            </a>
-                        </li>
+
                         <li class="nav-item mb-2">
                             <a class="nav-link text-white {{ request()->routeIs('admin.analytics*') ? 'active bg-primary' : 'text-white-50' }} px-3 py-2.5 d-flex align-items-center gap-3" href="{{ route('admin.analytics.index') }}">
                                 <i class="fas fa-chart-bar"></i>Analytics

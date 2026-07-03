@@ -376,7 +376,7 @@
                 </div>
                 @elseif($order->payment_status === 'rejected')
                 <div class="alert alert-danger mt-3 mb-0">
-                    ❌ Payment was rejected.
+                    ❌ Order Cancelled — Payment Rejected
                     @if($order->payment && $order->payment->verified_at)
                         <small class="d-block text-muted">
                             {{ \Carbon\Carbon::parse($order->payment->verified_at)->format('d M Y, H:i') }}

@@ -41,8 +41,11 @@
         <a href="{{ route('admin.analytics.export.csv', request()->query()) }}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
             <i class="fas fa-file-csv"></i> Export CSV
         </a>
-        <a href="{{ route('admin.analytics.export.pdf', request()->query()) }}" target="_blank" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
-            <i class="fas fa-file-pdf"></i> Print Report
+        <a href="{{ route('admin.analytics.export.pdf', request()->query()) }}" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+            <i class="fas fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('admin.analytics.printable', request()->query()) }}" target="_blank" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+            <i class="fas fa-print"></i> Print Report
         </a>
     </div>
 </div>
@@ -806,6 +809,136 @@
             <div class="card-body py-3">
                 <div class="text-muted small text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Avg Response Time</div>
                 <h4 class="mb-0 fw-bold text-{{ $timeColor }}">{{ number_format($responseTime, 1) }} hours</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION — RECENT ACTIVITY -->
+<div class="row g-4 mt-2 mb-4">
+    <!-- Latest 5 Orders -->
+    <div class="col-12 col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
+                <h5 class="fw-bold text-dark mb-0">Latest Orders</h5>
+                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-light fw-semibold text-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0 px-4">Order No</th>
+                                <th class="border-0">Customer</th>
+                                <th class="border-0">Status</th>
+                                <th class="border-0">Total</th>
+                                <th class="border-0 px-4">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($latestOrders as $order)
+                                <tr>
+                                    <td class="px-4 fw-medium text-primary">#{{ $order->order_number }}</td>
+                                    <td>{{ $order->customer->name ?? 'N/A' }}</td>
+                                    <td>
+                                        @switch($order->status)
+                                            @case('pending_pickup')
+                                                <span class="badge bg-secondary text-capitalize">Pending Pickup</span>
+                                                @break
+                                            @case('picked_up_from_customer')
+                                                <span class="badge bg-primary text-capitalize">Picked Up</span>
+                                                @break
+                                            @case('delivered_to_laundry')
+                                                <span class="badge bg-info text-dark text-capitalize">At Laundry</span>
+                                                @break
+                                            @case('processing')
+                                                <span class="badge bg-warning text-dark text-capitalize">Processing</span>
+                                                @break
+                                            @case('ready_for_delivery')
+                                                <span class="badge bg-teal text-capitalize">Ready for Delivery</span>
+                                                @break
+                                            @case('picked_up_from_laundry')
+                                                <span class="badge bg-primary text-capitalize">Picked Up from Laundry</span>
+                                                @break
+                                            @case('on_the_way')
+                                                <span class="badge bg-dark text-capitalize">On the Way</span>
+                                                @break
+                                            @case('delivered')
+                                                <span class="badge bg-success text-capitalize">Delivered</span>
+                                                @break
+                                            @case('cancelled')
+                                                <span class="badge bg-danger text-capitalize">Cancelled</span>
+                                                @break
+                                            @default
+                                                <span class="badge bg-secondary text-capitalize">{{ $order->status }}</span>
+                                        @endswitch
+                                    </td>
+                                    <td class="fw-semibold">${{ number_format($order->total_price, 2) }}</td>
+                                    <td class="text-muted px-4 small">{{ $order->created_at->format('M d, g:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="fa-solid fa-box-open fs-3 mb-2 d-block text-secondary"></i>
+                                        No recent orders found.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest 5 Support Messages -->
+    <div class="col-12 col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
+                <h5 class="fw-bold text-dark mb-0">Latest Support Tickets</h5>
+                <a href="{{ route('admin.support.index') }}" class="btn btn-sm btn-light fw-semibold text-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0 px-4">From</th>
+                                <th class="border-0">Subject</th>
+                                <th class="border-0">Status</th>
+                                <th class="border-0 px-4">Submitted At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($latestSupportMessages as $message)
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="fw-medium text-dark">{{ $message->name }}</div>
+                                        <div class="small text-muted">{{ $message->email }}</div>
+                                    </td>
+                                    <td class="text-truncate">{{ Str::limit($message->subject, 30) }}</td>
+                                    <td>
+                                        @if($message->status === 'pending')
+                                            <span class="badge bg-danger">Pending</span>
+                                        @elseif($message->status === 'resolved')
+                                            <span class="badge bg-success">Resolved</span>
+                                        @else
+                                            <span class="badge bg-secondary">Ignored</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-muted px-4 small">{{ $message->created_at->format('M d, g:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="fa-solid fa-envelope-open fs-3 mb-2 d-block text-secondary"></i>
+                                        No recent support messages.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

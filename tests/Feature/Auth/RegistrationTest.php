@@ -36,10 +36,10 @@ class RegistrationTest extends TestCase
             'role' => 'customer',
         ]);
 
-        // Assert direct redirect is to /dashboard, which redirects to /customer/dashboard based on role
-        $response->assertRedirect('/dashboard');
+        // Assert direct redirect is to the home route
+        $response->assertRedirect('/');
 
-        // Let's also verify that following redirects lands us on /customer/dashboard
+        // Let's also verify that following redirects lands us on the home page
         $followResponse = $this->followingRedirects()->post('/register', [
             'name' => 'Test Customer 2',
             'email' => 'testcustomer2@example.com',
@@ -49,7 +49,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
         
-        $this->assertEquals(url('/customer/dashboard'), url()->current());
+        $this->assertEquals(url('/'), url()->current());
     }
 
     public function test_registration_requires_name()

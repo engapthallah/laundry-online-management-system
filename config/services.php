@@ -60,4 +60,9 @@ return [
                                 'whatsapp:+14155238886'),
     ],
 
+    'callmebot' => [
+        'phone' => env('CALLMEBOT_PHONE'),
+        'apikey' => env('CALLMEBOT_API_KEY'),
+    ],
+
 ];

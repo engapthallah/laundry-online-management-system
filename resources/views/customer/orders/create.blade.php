@@ -27,7 +27,7 @@
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
     <h1 class="h2 fw-bold text-dark">Place New Order</h1>
-    <a href="{{ route('customer.dashboard') }}" class="btn btn-outline-secondary fw-semibold">
+    <a href="{{ route('home') }}" class="btn btn-outline-secondary fw-semibold">
         <i class="fa-solid fa-arrow-left me-2"></i>Back to Home
     </a>
 </div>

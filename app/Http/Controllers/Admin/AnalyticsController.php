@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\AnalyticsService;
+use App\Models\Order;
+use App\Models\SupportMessage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AnalyticsController extends Controller
 {
@@ -49,15 +52,60 @@ class AnalyticsController extends Controller
             ];
         });
 
-        return view('admin.analytics.index', compact('data', 'period', 'start', 'end', 'from', 'to'));
+        // Real-time activity (not cached)
+        $latestOrders = Order::with('customer')->latest()->take(5)->get();
+        $latestSupportMessages = SupportMessage::latest()->take(5)->get();
+
+        return view('admin.analytics.index', compact(
+            'data',
+            'period',
+            'start',
+            'end',
+            'from',
+            'to',
+            'latestOrders',
+            'latestSupportMessages'
+        ));
     }
 
     /**
-     * Redirect export/pdf to print-optimized HTML view.
+     * Export analytics data as PDF.
      */
     public function exportPdf(Request $request)
     {
-        return redirect()->route('admin.analytics.printable', $request->query());
+        $period = $request->get('period', 'thismonth');
+        $from   = $request->get('from');
+        $to     = $request->get('to');
+
+        $dateRange = AnalyticsService::getDateRange($period, $from, $to);
+        $start = $dateRange['start'];
+        $end   = $dateRange['end'];
+
+        $cacheKey = "analytics_{$period}_{$start->toDateString()}_{$end->toDateString()}";
+
+        $data = Cache::remember($cacheKey, 300, function() use ($start, $end) {
+            return [
+                'kpi'            => AnalyticsService::getKpiCards($start, $end),
+                'revenueDay'     => AnalyticsService::getRevenueByDay($start, $end),
+                'revenueMonth'   => AnalyticsService::getRevenueByMonth(Carbon::now()->year),
+                'orderStatus'    => AnalyticsService::getOrdersByStatus($start, $end),
+                'paymentMethod'  => AnalyticsService::getOrdersByPaymentMethod($start, $end),
+                'topServices'    => AnalyticsService::getTopServices($start, $end, 15),
+                'staffPerf'      => AnalyticsService::getStaffPerformance($start, $end),
+                'deliveryPerf'   => AnalyticsService::getDeliveryPerformance($start, $end),
+                'customerGrowth' => AnalyticsService::getCustomerGrowth(Carbon::now()->year),
+                'reviewStats'    => AnalyticsService::getReviewStats($start, $end),
+                'supportStats'   => AnalyticsService::getSupportStats($start, $end),
+                'ordersDay'      => AnalyticsService::getOrdersByDay($start, $end),
+                'topCustomers'   => AnalyticsService::getTopCustomers($start, $end),
+            ];
+        });
+
+        $pdf = Pdf::loadView('admin.analytics.pdf-report', compact('data', 'period', 'start', 'end', 'from', 'to'));
+        
+        $filename = "LOMS-Analytics-Report-{$start->format('Y-m-d')}-to-{$end->format('Y-m-d')}.pdf";
+        
+        return $pdf->download($filename);
     }
 
     /**

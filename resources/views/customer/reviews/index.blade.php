@@ -18,7 +18,7 @@
             <h1 class="h3 fw-bold text-dark mb-1">My Reviews</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('customer.dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                     <li class="breadcrumb-item active" aria-current="page">My Reviews</li>
                 </ol>
             </nav>

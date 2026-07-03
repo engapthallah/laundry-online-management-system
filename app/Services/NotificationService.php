@@ -16,6 +16,7 @@ use App\Mail\DeliveryCompletedMail;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 
 class NotificationService
 {
@@ -76,7 +77,6 @@ class NotificationService
 
             // 3. Customer: SMS Notification
             $smsMessage = "LOMS: Order {$orderNumber} confirmed! Total: \${$totalPrice}. We will start processing your laundry shortly. — Iimaan Dry Cleaner";
-            self::send($customer->id, $customerTitle, $smsMessage, 'sms', $order->id);
             try {
                 if ($customer->phone) {
                     SmsService::send($customer->phone, $smsMessage);
@@ -125,6 +125,10 @@ class NotificationService
 
             $message = $statusMessages[$newStatus] ?? "Your order status has been updated to {$newStatus}.";
 
+            if ($newStatus === 'cancelled' && $order->payment_status === 'rejected') {
+                $message = "Your payment for Order #{$orderNumber} could not be verified and the order has been cancelled.";
+            }
+
             // If the status is delivered, delegate to deliveryCompleted to avoid duplication
             if ($newStatus === 'delivered') {
                 self::deliveryCompleted($order);
@@ -135,13 +139,24 @@ class NotificationService
             self::send($customer->id, $title, $message, 'system', $order->id);
 
             // Channel dispatch logic based on status
-            // Email dispatch for confirmed, ready_for_delivery, and cancelled status updates
-            if (in_array($newStatus, ['confirmed', 'ready_for_delivery', 'cancelled'])) {
+            // Email dispatch for confirmed and cancelled status updates
+            if (in_array($newStatus, ['confirmed', 'cancelled'])) {
                 self::send($customer->id, $title, $message, 'email', $order->id);
                 try {
                     Mail::to($customer->email)->send(new OrderStatusUpdatedMail($order, $newStatus));
                 } catch (\Exception $e) {
                     Log::error("Failed sending OrderStatusUpdatedMail to {$customer->email} for status '{$newStatus}': " . $e->getMessage());
+                }
+            }
+
+            // Customer Email notification (Ready For Delivery)
+            if ($newStatus === 'ready_for_delivery') {
+                self::send($customer->id, $title, $message, 'email', $order->id);
+                try {
+                    Mail::to($customer->email)->send(new \App\Mail\OrderReadyForDeliveryMail($order));
+                    Log::info("Email notification sent successfully to Customer ID {$customer->id} ({$customer->email}) for Order #{$order->id} [ready_for_delivery].");
+                } catch (\Exception $e) {
+                    Log::error("Failed to send ready_for_delivery email to Customer ID {$customer->id} ({$customer->email}) for Order #{$order->id}: " . $e->getMessage());
                 }
             }
 
@@ -153,7 +168,6 @@ class NotificationService
                 ];
                 $smsMessage = $smsTemplates[$newStatus] ?? $message;
 
-                self::send($customer->id, $title, $smsMessage, 'sms', $order->id);
                 try {
                     if ($customer->phone) {
                         SmsService::send($customer->phone, $smsMessage);
@@ -176,6 +190,15 @@ class NotificationService
                         'WhatsApp ready_for_delivery failed: '
                         . $e->getMessage()
                     );
+                }
+            }
+
+            // Customer WhatsApp notification (CallMeBot)
+            if ($newStatus === 'ready_for_delivery') {
+                try {
+                    \App\Jobs\SendWhatsAppNotificationJob::dispatch($customer, $order, 'ready_for_delivery');
+                } catch (\Exception $e) {
+                    Log::error("Failed to dispatch WhatsApp job for ready_for_delivery on Order #{$order->id}: " . $e->getMessage());
                 }
             }
         } catch (\Exception $e) {
@@ -346,13 +369,13 @@ class NotificationService
             // 2. Customer: Email Notification
             self::send($customer->id, $customerTitle, $customerMessage, 'email', $order->id);
             try {
-                Mail::to($customer->email)->send(new DeliveryCompletedMail($order));
+                Mail::to($customer->email)->send(new \App\Mail\OrderDeliveredMail($order));
+                Log::info("Email notification sent successfully to Customer ID {$customer->id} ({$customer->email}) for Order #{$order->id} [delivered].");
             } catch (\Exception $e) {
-                Log::error("Failed sending DeliveryCompletedMail to {$customer->email}: " . $e->getMessage());
+                Log::error("Failed to send delivered email to Customer ID {$customer->id} ({$customer->email}) for Order #{$order->id}: " . $e->getMessage());
             }
 
             // 3. Customer: SMS Notification
-            self::send($customer->id, $customerTitle, $smsMessage, 'sms', $order->id);
             try {
                 if ($customer->phone) {
                     SmsService::send($customer->phone, $smsMessage);
@@ -375,6 +398,13 @@ class NotificationService
                 );
             }
 
+            // Customer WhatsApp notification (CallMeBot)
+            try {
+                \App\Jobs\SendWhatsAppNotificationJob::dispatch($customer, $order, 'delivered');
+            } catch (\Exception $e) {
+                Log::error("Failed to dispatch WhatsApp job for delivered on Order #{$order->id}: " . $e->getMessage());
+            }
+
             // 4. Admin: System Notification
             $admin = User::where('role', 'admin')->first();
             if ($admin) {
@@ -384,6 +414,73 @@ class NotificationService
             }
         } catch (\Exception $e) {
             Log::error("Error processing deliveryCompleted notifications for Order #{$order->id}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send a WhatsApp notification to the customer via CallMeBot free API.
+     * Always safe: wraps everything in try/catch, logging outcomes, and never throwing exceptions.
+     *
+     * @param  \App\Models\User  $customer
+     * @param  \App\Models\Order  $order
+     * @param  string  $eventType
+     * @return bool
+     */
+    public static function sendWhatsAppNotification(User $customer, Order $order, string $eventType): bool
+    {
+        try {
+            $apiKey = config('services.callmebot.apikey');
+            if (empty($apiKey)) {
+                Log::warning("CallMeBot API key is not configured. Cannot send WhatsApp notification for Order #{$order->id}.");
+                return false;
+            }
+
+            $recipientPhone = config('services.callmebot.phone');
+            if (empty($recipientPhone)) {
+                Log::warning("CallMeBot recipient phone is not configured. Cannot send WhatsApp notification for Order #{$order->id}.");
+                return false;
+            }
+
+            // Strip the '+' sign from the phone number as required by CallMeBot
+            $cleanPhone = ltrim($recipientPhone, '+');
+
+            $customerFullName = $customer->name;
+            $orderId = $order->id;
+
+            // WhatsApp alerts templates for the business owner
+            if ($eventType === 'ready_for_delivery') {
+                $message = "🧺 Order Ready for Delivery!\n"
+                         . "Customer: {$customerFullName}\n"
+                         . "Order ID: #{$orderId}\n"
+                         . "The laundry is clean and ready. Please coordinate delivery to the customer.";
+            } elseif ($eventType === 'delivered') {
+                $message = "✅ Order Delivered!\n"
+                         . "Customer: {$customerFullName}\n"
+                         . "Order ID: #{$orderId}\n"
+                         . "The order has been successfully delivered to the customer.";
+            } else {
+                Log::warning("Invalid eventType '{$eventType}' specified for CallMeBot WhatsApp notification on Order #{$orderId}.");
+                return false;
+            }
+
+            // Make the HTTP request using Laravel's Http client with query parameters
+            $response = Http::timeout(15)->get('https://api.callmebot.com/whatsapp.php', [
+                'phone'  => $cleanPhone,
+                'text'   => $message,
+                'apikey' => $apiKey,
+            ]);
+
+            if ($response->successful()) {
+                Log::info("WhatsApp notification via CallMeBot sent successfully to owner (Phone: {$cleanPhone}) for Order #{$orderId} [Type: {$eventType}].");
+                return true;
+            }
+
+            Log::error("CallMeBot API returned status {$response->status()} with body: {$response->body()} for Order #{$orderId}.");
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error("Exception occurred while sending CallMeBot WhatsApp notification for Order #{$order->id}: " . $e->getMessage());
+            return false;
         }
     }
 }
