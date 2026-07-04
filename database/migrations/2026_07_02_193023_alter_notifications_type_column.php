@@ -13,14 +13,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Convert any existing 'sms', 'payment_verified', and 'payment_rejected' types to 'system'
+        // Convert any existing types that are not 'system' or 'email' (including nulls) to 'system'
         DB::table('notifications')
-            ->whereIn('type', ['sms', 'payment_verified', 'payment_rejected'])
+            ->whereNotIn('type', ['system', 'email'])
+            ->orWhereNull('type')
             ->update(['type' => 'system']);
 
         // Modify the column type to ENUM on MySQL, and standard string on SQLite
         if (DB::connection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE notifications MODIFY COLUMN type ENUM('system', 'email') DEFAULT 'system'");
+            $columnType = '';
+            $result = DB::select("SHOW COLUMNS FROM notifications LIKE 'type'");
+            if (!empty($result)) {
+                $columnType = strtolower($result[0]->Type);
+            }
+
+            if (strpos($columnType, 'enum') === false) {
+                DB::statement("ALTER TABLE notifications MODIFY COLUMN type ENUM('system', 'email') DEFAULT 'system'");
+            }
         } else {
             Schema::table('notifications', function (Blueprint $table) {
                 $table->string('type')->default('system')->change();
@@ -35,7 +44,15 @@ return new class extends Migration
     {
         // Revert columns back to VARCHAR(255)
         if (DB::connection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE notifications MODIFY COLUMN type VARCHAR(255) NULL");
+            $columnType = '';
+            $result = DB::select("SHOW COLUMNS FROM notifications LIKE 'type'");
+            if (!empty($result)) {
+                $columnType = strtolower($result[0]->Type);
+            }
+
+            if (strpos($columnType, 'varchar') === false) {
+                DB::statement("ALTER TABLE notifications MODIFY COLUMN type VARCHAR(255) NULL");
+            }
         } else {
             Schema::table('notifications', function (Blueprint $table) {
                 $table->string('type')->nullable()->change();
